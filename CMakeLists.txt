@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(kateollama VERSION 1.0)
+project(kate-ollama VERSION 1.0)
 
 find_package(ECM ${KF5_DEP_VERSION} QUIET REQUIRED NO_MODULE)
 
@@ -19,20 +19,23 @@ find_package(KF5 ${KF5_DEP_VERSION}
 )
 
 # This line defines the actual target
-kcoreaddons_add_plugin(kateollama # your plugin name here
+kcoreaddons_add_plugin(kate-ollama
     INSTALL_NAMESPACE "ktexteditor")
 
 target_sources(
-  kateollama
+  kate-ollama
   PRIVATE
   ollama_plugin.h
   ollama_plugin.cpp
+  metadata.json
 )
 
 # This makes the plugin translatable
-target_compile_definitions(kateollama PRIVATE TRANSLATION_DOMAIN="kateollama")
+target_compile_definitions(kate-ollama PRIVATE TRANSLATION_DOMAIN="kate-ollama")
 
-target_link_libraries(kateollama
+target_link_libraries(kate-ollama
     PRIVATE
     KF5::CoreAddons KF5::I18n KF5::TextEditor
 )
+
+feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
