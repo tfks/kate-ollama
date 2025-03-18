@@ -1,30 +1,38 @@
-cmake_minimum_required(VERSION 3.10)
-project(KateOllama)
+cmake_minimum_required(VERSION 3.16)
+project(kateollama VERSION 1.0)
 
-find_package(ECM ${KF6_MIN_VERSION} REQUIRED NO_MODULE)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH} )
-find_package(KF5TextEditor REQUIRED)
-find_package(KF5CoreAddons REQUIRED COMPONENTS)
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(ECM ${KF5_DEP_VERSION} QUIET REQUIRED NO_MODULE)
+
+list(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 
 include(KDEInstallDirs)
-include(KDECompilerSettings NO_POLICY_SCOPE)
 include(KDECMakeSettings)
-include(ECMSetupVersion)
 
-add_library(kate_ollama_plugin MODULE ollama_plugin.cpp)
+find_package(Qt${QT_MAJOR_VERSION}Widgets CONFIG REQUIRED)
 
-target_include_directories(kate_ollama_plugin PRIVATE ${KF5TextEditor_INCLUDE_DIRS})
-target_link_libraries(kate_ollama_plugin PRIVATE KF5::TextEditor KF5::CoreAddons Qt6::Widgets)
-
-set_target_properties(kate_ollama_plugin PROPERTIES
-    VERSION ${PLUGIN_VERSION}
-    SOVERSION ${PLUGIN_VERSION_MAJOR}
-    AUTOMOC ON
+set(KF5_DEP_VERSION "5.90")
+find_package(KF5 ${KF5_DEP_VERSION}
+    REQUIRED COMPONENTS
+        CoreAddons # Core addons on top of QtCore
+        I18n # For localization
+        TextEditor # The editor component
 )
 
-install(TARGETS kate_ollama_plugin LIBRARY DESTINATION ${KDE_INSTALL_PLUGINDIR})
+# This line defines the actual target
+kcoreaddons_add_plugin(kateollama # your plugin name here
+    INSTALL_NAMESPACE "ktexteditor")
 
-message(STATUS "KDE_INSTALL_PLUGINDIR: ${KDE_INSTALL_PLUGINDIR}")
+target_sources(
+  kateollama
+  PRIVATE
+  ollama_plugin.h
+  ollama_plugin.cpp
+)
 
-install(FILES ${CMAKE_SOURCE_DIR}/metadata.json DESTINATION ${KDE_INSTALL_PLUGINDIR})
+# This makes the plugin translatable
+target_compile_definitions(kateollama PRIVATE TRANSLATION_DOMAIN="kateollama")
+
+target_link_libraries(kateollama
+    PRIVATE
+    KF5::CoreAddons KF5::I18n KF5::TextEditor
+)
