@@ -1,8 +1,0 @@
-{
-    "KPlugin": {
-        "Name": "OllamaPlugin",
-        "Version": "1.0"
-    },
-    "X-KTextEditor-MinimalVersion": "5.0",
-    "ServiceTypes": ["KTextEditor/Plugin"]
-}

@@ -1,11 +1,23 @@
-#include "ollama_plugin.h"
+/*
+    SPDX-FileCopyrightText: 2025 Daniele Mte90 Scasciafratte <mte90net@gmail.com>
+
+    SPDX-License-Identifier: LGPL-2.0-or-later
+*/
+
+#include "kateollamaplugin.h"
+
+#include "kateollamaview.h"
+
+// KF headers
+#include <KTextEditor/MainWindow>
 #include <KTextEditor/View>
 #include <KTextEditor/Document>
 #include <KTextEditor/Plugin>
-#include <KXMLGUIClient>
+
+#include <QAction>
 #include <KActionCollection>
-#include <KPluginFactory>
-#include <KPluginLoader>
+#include <KXMLGUIClient>
+#include <KLocalizedString>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
@@ -13,12 +25,17 @@
 #include <QJsonObject>
 #include <QAction>
 #include <QRegularExpression>
+#include <KPluginFactory>
+#include <KLocalizedString>
 
-OllamaPlugin::OllamaPlugin(QObject *parent)
-: KTextEditor::Plugin(parent)
+K_PLUGIN_CLASS_WITH_JSON(KateOllamaPlugin, "kateollama.json")
+
+
+KateOllamaPlugin::KateOllamaPlugin(QObject* parent, const QVariantList& /*args*/)
+    : KTextEditor::Plugin(parent)
 {
     QAction *action = new QAction(tr("Run Ollama"), this);
-    connect(action, &QAction::triggered, this, &OllamaPlugin::runOllama);
+    connect(action, &QAction::triggered, this, &KateOllamaPlugin::onActionTriggered);
 
     // Add the action to the plugin's action collection
     KActionCollection *actionCollection = new KActionCollection(this);
@@ -31,9 +48,7 @@ OllamaPlugin::OllamaPlugin(QObject *parent)
     }
 }
 
-OllamaPlugin::~OllamaPlugin() {}
-
-void OllamaPlugin::runOllama()
+void KateOllamaPlugin::onActionTriggered()
 {
     KTextEditor::View *view = qobject_cast<KTextEditor::View*>(parent());
     if (view) {
@@ -75,13 +90,13 @@ void OllamaPlugin::runOllama()
     }
 }
 
-QObject *OllamaPlugin::createView(KTextEditor::MainWindow *mainWindow)
+QObject* KateOllamaPlugin::createView(KTextEditor::MainWindow* mainwindow)
 {
-    return nullptr;
+    return new KateOllamaView(this, mainwindow);
 }
 
-K_PLUGIN_FACTORY_WITH_JSON(OllamaPluginFactory, "metadata.json",
-    new OllamaPlugin(nullptr);
-)
 
-#include "ollama_plugin.moc"
+// needed for K_PLUGIN_CLASS_WITH_JSON
+#include <kateollamaplugin.moc>
+
+#include "moc_kateollamaplugin.cpp"

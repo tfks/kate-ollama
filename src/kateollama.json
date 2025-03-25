@@ -1,0 +1,16 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "mte90net@gmail.com",
+                "Name": "Daniele Mte90 Scasciafratte"
+            }
+        ],
+        "Description": "Experimental plugin to integrate Ollama in Kate ",
+        "Icon": "tool-text",
+        "Name": "KateOllama",
+        "ServiceTypes": [
+            "KTextEditor/Plugin"
+        ]
+    }
+}
