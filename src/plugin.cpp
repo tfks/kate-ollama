@@ -43,16 +43,32 @@ KateOllamaView::KateOllamaView(KateOllamaPlugin *, KTextEditor::MainWindow *main
     : KXMLGUIClient()
     , m_mainWindow(mainwindow)
 {
-    KXMLGUIClient::setComponentName(u"kateollama"_s, i18n("Kate-Ollama"));    
+    KXMLGUIClient::setComponentName(u"kateollama"_s, i18n("Kate-Ollama"));
     
     auto ac = actionCollection();
     QAction *a = ac->addAction(QStringLiteral("kateollama"));
     a->setText(i18n("Run Ollama"));
     a->setIcon(QIcon::fromTheme(QStringLiteral("debug-run")));
-    KActionCollection::setDefaultShortcut(a, QKeySequence((Qt::CTRL | Qt::SHIFT| Qt::Key_0)));
+    KActionCollection::setDefaultShortcut(a, QKeySequence((Qt::CTRL | Qt::Key_Semicolon)));
     connect(a, &QAction::triggered, this, &KateOllamaView::onActionTriggered);
 
+    QAction *a2 = ac->addAction(QStringLiteral("kateollama-command"));
+    a2->setText(i18n("Add Ollama Command"));
+    KActionCollection::setDefaultShortcut(a2, QKeySequence((Qt::CTRL | Qt::Key_Slash)));
+    connect(a2, &QAction::triggered, this, &KateOllamaView::printCommand);
+
     m_mainWindow->guiFactory()->addClient(this);
+}
+
+void KateOllamaView::printCommand()
+{
+    KTextEditor::View *view = m_mainWindow->activeView();;
+    if (view) {
+        KTextEditor::Document *document = view->document();
+        QString text = document->text();
+        KTextEditor::Cursor cursor = view->cursorPosition();
+        document->insertText(cursor, "// AI: ");
+    }
 }
 
 void KateOllamaView::onActionTriggered()
@@ -65,15 +81,17 @@ void KateOllamaView::onActionTriggered()
         QRegularExpression re("// AI:(.*)");
         QRegularExpressionMatchIterator matchIterator = re.globalMatch(text);
         QStringList prompts;
+        QString lastPrompt;
 
         while (matchIterator.hasNext()) {
             QRegularExpressionMatch match = matchIterator.next();
             QString prompt = match.captured(1).trimmed();
             prompts.append(prompt);
+            lastPrompt = prompt;
         }
 
-        if (!prompts.isEmpty()) {
-            qDebug() << "Ollama prompt:" << prompts;
+        if (!lastPrompt.isEmpty()) { // If you use prompts use also the past prompts
+            qDebug() << "Ollama prompt:" << lastPrompt;
             QNetworkAccessManager *manager = new QNetworkAccessManager(this);
 
             QNetworkRequest request(QUrl("http://localhost:11434/api/generate"));
@@ -81,7 +99,7 @@ void KateOllamaView::onActionTriggered()
 
             QJsonObject json;
             json.insert("model", "llama3.2:latest");
-            json.insert("prompt", prompts.join("\n"));
+            json.insert("prompt", lastPrompt); //prompts.join("\n")
             QJsonDocument doc(json);
 
             QNetworkReply *reply = manager->post(request, doc.toJson());
@@ -109,6 +127,9 @@ void KateOllamaView::onActionTriggered()
                     qDebug() << "Error:" << reply->errorString();
                 }
                 reply->deleteLater();
+
+                KTextEditor::Cursor cursor = view->cursorPosition();
+                document->insertText(cursor, "\n");
             });
         }
     }

@@ -32,6 +32,7 @@ public:
 
 private slots:
     void onActionTriggered();
+    void printCommand();
 
 private:
     KTextEditor::MainWindow *m_mainWindow = nullptr;
