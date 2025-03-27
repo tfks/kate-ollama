@@ -20,7 +20,6 @@ Build and install:
 ```
 mkdir -p build && cd build
 cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -G Ninja ../
-rm -fr ./kateollama_autogen/
 ninja
 ninja install
 ```
@@ -28,5 +27,5 @@ ninja install
 If you are developing a symlink as root can simplify the loading of the latest plugin build:
 
 ```
-ln -s /home/mte90/Desktop/Prog/kate-ai/build/plugins/kf6/ktexteditor/kateollama.so /usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/ktexteditor/kateollama.so
+ln -s /your-folder/build/plugins/kf6/ktexteditor/kateollama.so /usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/ktexteditor/kateollama.so
 ```
