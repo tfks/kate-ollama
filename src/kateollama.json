@@ -6,9 +6,11 @@
                 "Name": "Daniele Mte90 Scasciafratte"
             }
         ],
-        "Description": "Experimental plugin to integrate Ollama in Kate ",
+        "Description": "Experimental plugin to integrate Ollama in Kate",
+        "Description[it]": "Plugin sperimental per integrare Ollama in Kate",
         "Icon": "tool-text",
-        "Name": "KateOllama",
+        "Name": "Kate-Ollama",
+        "Name[it]": "Kate-Ollama",
         "ServiceTypes": [
             "KTextEditor/Plugin"
         ]
