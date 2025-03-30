@@ -37,6 +37,31 @@ using namespace Qt::Literals::StringLiterals;
 
 K_PLUGIN_FACTORY_WITH_JSON(KateOllamaFactory, "kateollama.json", registerPlugin<KateOllamaPlugin>();)
 
+enum MessageType {
+    Log,
+    Info,
+    Warn,
+    Error
+};
+
+static void showMessage(const QString &message, MessageType type, KTextEditor::MainWindow *mainWindow)
+{
+    QVariantMap msg;
+    static const QString msgToString[] = {
+        QStringLiteral("Log"),
+        QStringLiteral("Info"),
+        QStringLiteral("Warning"),
+        QStringLiteral("Error"),
+    };
+    msg.insert(QStringLiteral("type"), msgToString[type]);
+    msg.insert(QStringLiteral("category"), QStringLiteral("Kate Ollama"));
+    msg.insert(QStringLiteral("categoryIcon"), QIcon()); // todo icon
+    msg.insert(QStringLiteral("text"), message);
+
+    // Shows the message in Output pane
+    mainWindow->showMessage(msg);
+}
+
 KateOllamaPlugin::KateOllamaPlugin(QObject *parent, const QVariantList &)
     : KTextEditor::Plugin(parent)
 {
@@ -116,8 +141,9 @@ void KateOllamaView::ollamaRequest(QString prompt)
         }
     });
 
-    connect(reply, &QNetworkReply::finished, this, [=]() {
+    connect(reply, &QNetworkReply::finished, this, [=, this]() {
         if (reply->error() != QNetworkReply::NoError) {
+            showMessage(QStringLiteral("Error: ").arg(reply->errorString()), MessageType::Error, m_mainWindow);
             qDebug() << "Error:" << reply->errorString();
         }
         reply->deleteLater();
