@@ -16,14 +16,12 @@
 #include <KXMLGUIClient>
 #include <QString>
 
-class KateOllamaPlugin : public KTextEditor::Plugin //, public KTextEditor::SessionConfigInterface
+class KateOllamaPlugin : public KTextEditor::Plugin
 {
     Q_OBJECT
-    //_INTERFACES(KTextEditor::SessionConfigInterface)
 
 public:
     explicit KateOllamaPlugin(QObject *parent, const QVariantList & = QVariantList());
-    // ~KateOllamaPlugin() override;
 
     QObject *createView(KTextEditor::MainWindow *mainWindow) override;
 
