@@ -24,11 +24,11 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
 
-    comboBox = new QComboBox(this);
-    layout->addWidget(comboBox);
+    m_modelsComboBox = new QComboBox(this);
+    layout->addWidget(m_modelsComboBox);
 
-    lineEdit = new QLineEdit(this);
-    layout->addWidget(lineEdit);
+    m_systemPromptEdit = new QLineEdit(this);
+    layout->addWidget(m_systemPromptEdit);
 
     setLayout(layout);
 
@@ -49,7 +49,7 @@ void KateOllamaConfigPage::fetchModelList()
                     QJsonArray modelsArray = jsonObj["models"].toArray();
                     for (const QJsonValue &modelValue : modelsArray) {
                         if (modelValue.isString()) {
-                            comboBox->addItem(modelValue.toString());
+                            m_modelsComboBox->addItem(modelValue.toString());
                         }
                     }
                 }
@@ -92,19 +92,19 @@ void KateOllamaConfigPage::defaults()
 void KateOllamaConfigPage::reset()
 {
     // Reset the UI values to last known settings
-    comboBox->setCurrentText(m_plugin->model);
-    lineEdit->setText(m_plugin->systemPrompt);
+    m_modelsComboBox->setCurrentText(m_plugin->model);
+    m_systemPromptEdit->setText(m_plugin->systemPrompt);
 }
 
 void KateOllamaConfigPage::saveSettings()
 {
     // Save settings to disk
     KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
-    group.writeEntry("Model", comboBox->currentText());
-    group.writeEntry("SystemPrompt", lineEdit->text());
+    group.writeEntry("Model", m_modelsComboBox->currentText());
+    group.writeEntry("SystemPrompt", m_systemPromptEdit->text());
     group.sync();
 
     // Update the cached variables in Plugin
-    m_plugin->model = comboBox->currentText();
-    m_plugin->systemPrompt = lineEdit->text();
+    m_plugin->model = m_modelsComboBox->currentText();
+    m_plugin->systemPrompt = m_systemPromptEdit->text();
 }

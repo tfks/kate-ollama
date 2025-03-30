@@ -35,8 +35,8 @@ public:
     void reset() override;
 
 private:
-    QComboBox *comboBox;
-    QLineEdit *lineEdit;
+    QComboBox *m_modelsComboBox;
+    QLineEdit *m_systemPromptEdit;
 
     KateOllamaPlugin *const m_plugin;
 };
