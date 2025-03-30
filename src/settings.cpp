@@ -13,6 +13,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QLabel>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -24,11 +25,33 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
 
-    m_modelsComboBox = new QComboBox(this);
-    layout->addWidget(m_modelsComboBox);
+    // Available Models
+    {
+        auto *hl = new QHBoxLayout;
 
-    m_systemPromptEdit = new QLineEdit(this);
-    layout->addWidget(m_systemPromptEdit);
+        auto label = new QLabel(i18n("Available Models"));
+        hl->addWidget(label);
+
+        m_modelsComboBox = new QComboBox(this);
+        hl->addWidget(m_modelsComboBox);
+
+        layout->addLayout(hl);
+    }
+
+    // System Prompt
+    {
+        auto *hl = new QHBoxLayout;
+
+        auto label = new QLabel(i18n("System Prompt"));
+        hl->addWidget(label);
+
+        m_systemPromptEdit = new QLineEdit(this);
+        hl->addWidget(m_systemPromptEdit);
+
+        layout->addLayout(hl);
+    }
+
+    layout->addStretch();
 
     setLayout(layout);
 
