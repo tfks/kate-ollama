@@ -8,12 +8,12 @@
 #define KATEOLLAMACONFIGPAGE_H
 
 #include <KTextEditor/ConfigPage>
-#include <QComboBox>
-#include <QLineEdit>
-#include <QWidget>
 
 class KateOllamaPlugin;
 class QLabel;
+class QComboBox;
+class QLineEdit;
+class QWidget;
 
 class KateOllamaConfigPage : public KTextEditor::ConfigPage
 {

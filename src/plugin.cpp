@@ -8,20 +8,20 @@
 #include "settings.h"
 
 // KF headers
+#include <KActionCollection>
+#include <KConfigGroup>
+#include <KLocalizedString>
+#include <KPluginFactory>
+#include <KSharedConfig>
 #include <KTextEditor/Application>
 #include <KTextEditor/Document>
 #include <KTextEditor/Editor>
 #include <KTextEditor/MainWindow>
 #include <KTextEditor/Plugin>
 #include <KTextEditor/View>
-
-#include <KActionCollection>
-#include <KConfigGroup>
-#include <KLocalizedString>
-#include <KPluginFactory>
-#include <KSharedConfig>
 #include <KXMLGUIClient>
 #include <KXMLGUIFactory>
+
 #include <QAction>
 #include <QDebug>
 #include <QJsonDocument>
