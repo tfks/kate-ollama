@@ -38,7 +38,7 @@ private:
     QComboBox *comboBox;
     QLineEdit *lineEdit;
 
-    KateOllamaPlugin *m_plugin;
+    KateOllamaPlugin *const m_plugin;
 };
 
 #endif // KATEOLLAMACONFIGPAGE_H
