@@ -13,6 +13,7 @@
 #include <QWidget>
 
 class KateOllamaPlugin;
+class QLabel;
 
 class KateOllamaConfigPage : public KTextEditor::ConfigPage
 {
@@ -37,6 +38,7 @@ public:
 private:
     QComboBox *m_modelsComboBox;
     QLineEdit *m_systemPromptEdit;
+    QLabel *m_infoLabel;
 
     KateOllamaPlugin *const m_plugin;
 };

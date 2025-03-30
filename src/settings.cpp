@@ -53,6 +53,14 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
 
     layout->addStretch();
 
+    // Error/Info label
+    {
+        m_infoLabel = new QLabel(this);
+        m_infoLabel->setVisible(false); // its hidden initially
+        m_infoLabel->setWordWrap(true);
+        layout->addWidget(m_infoLabel);
+    }
+
     setLayout(layout);
 
     fetchModelList();
@@ -63,6 +71,8 @@ void KateOllamaConfigPage::fetchModelList()
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     connect(manager, &QNetworkAccessManager::finished, this, [this](QNetworkReply *reply) {
         if (reply->error() == QNetworkReply::NoError) {
+            m_infoLabel->setVisible(false); // Hide the label on success
+
             QByteArray responseData = reply->readAll();
             QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
 
@@ -79,6 +89,8 @@ void KateOllamaConfigPage::fetchModelList()
             }
         } else {
             qWarning() << "Error fetching model list:" << reply->errorString();
+            // Show error in UI
+            m_infoLabel->setText(i18n("Error fetching model list: %1", reply->errorString()));
         }
         reply->deleteLater();
     });
@@ -86,6 +98,9 @@ void KateOllamaConfigPage::fetchModelList()
     QUrl url("http://localhost:11434/models");
     QNetworkRequest request(url);
     manager->get(request);
+
+    m_infoLabel->setText(i18n("Loading model list..."));
+    m_infoLabel->setVisible(true);
 }
 
 QString KateOllamaConfigPage::name() const
