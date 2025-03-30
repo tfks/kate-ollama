@@ -7,15 +7,15 @@
 #include "settings.h"
 #include "plugin.h"
 #include <KConfigGroup>
-#include <KSharedConfig>
 #include <KLocalizedString>
+#include <KSharedConfig>
 #include <KTextEditor/ConfigPage>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QVBoxLayout>
 
 KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *plugin)
@@ -33,11 +33,12 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
     setLayout(layout);
 
     loadSettings();
-    
+
     fetchModelList();
 }
 
-void KateOllamaConfigPage::fetchModelList() {
+void KateOllamaConfigPage::fetchModelList()
+{
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     connect(manager, &QNetworkAccessManager::finished, this, [this](QNetworkReply *reply) {
         if (reply->error() == QNetworkReply::NoError) {
@@ -86,14 +87,16 @@ void KateOllamaConfigPage::defaults()
     reset();
 }
 
-void KateOllamaConfigPage::saveSettings() {
+void KateOllamaConfigPage::saveSettings()
+{
     KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
     group.writeEntry("Model", comboBox->currentText());
     group.writeEntry("SystemPrompt", lineEdit->text());
     group.sync();
 }
 
-void KateOllamaConfigPage::loadSettings() {
+void KateOllamaConfigPage::loadSettings()
+{
     KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
     comboBox->setCurrentText(group.readEntry("Model", "llama3.2:latest"));
     lineEdit->setText(group.readEntry("SystemPrompt", ""));

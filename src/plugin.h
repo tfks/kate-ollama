@@ -8,15 +8,15 @@
 #define KATEOLLAMAPLUGIN_H
 
 // KF headers
-#include <KTextEditor/Plugin>
 #include <KTextEditor/Document>
 #include <KTextEditor/MainWindow>
+#include <KTextEditor/Plugin>
 #include <KTextEditor/SessionConfigInterface>
 #include <KTextEditor/View>
 #include <KXMLGUIClient>
 #include <QString>
 
-class KateOllamaPlugin : public KTextEditor::Plugin//, public KTextEditor::SessionConfigInterface
+class KateOllamaPlugin : public KTextEditor::Plugin //, public KTextEditor::SessionConfigInterface
 {
     Q_OBJECT
     //_INTERFACES(KTextEditor::SessionConfigInterface)

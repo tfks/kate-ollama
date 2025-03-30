@@ -8,37 +8,34 @@
 #include "settings.h"
 
 // KF headers
-#include <KTextEditor/MainWindow>
-#include <KTextEditor/View>
-#include <KTextEditor/Document>
-#include <KTextEditor/Plugin>
 #include <KTextEditor/Application>
+#include <KTextEditor/Document>
 #include <KTextEditor/Editor>
+#include <KTextEditor/MainWindow>
+#include <KTextEditor/Plugin>
+#include <KTextEditor/View>
 
-#include <QAction>
 #include <KActionCollection>
-#include <KXMLGUIClient>
 #include <KLocalizedString>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
+#include <KPluginFactory>
+#include <KXMLGUIClient>
+#include <KXMLGUIFactory>
+#include <QAction>
+#include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QAction>
-#include <QString>
-#include <QRegularExpression>
-#include <KPluginFactory>
-#include <KXMLGUIFactory>
-#include <KLocalizedString>
-#include <QDebug>
 #include <QMenu>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QRegularExpression>
+#include <QString>
 
 using namespace Qt::Literals::StringLiterals;
 
 K_PLUGIN_FACTORY_WITH_JSON(KateOllamaFactory, "kateollama.json", registerPlugin<KateOllamaPlugin>();)
 
-
-KateOllamaPlugin::KateOllamaPlugin(QObject* parent, const QVariantList&)
+KateOllamaPlugin::KateOllamaPlugin(QObject *parent, const QVariantList &)
     : KTextEditor::Plugin(parent)
 {
 }
@@ -48,7 +45,7 @@ KateOllamaView::KateOllamaView(KateOllamaPlugin *, KTextEditor::MainWindow *main
     , m_mainWindow(mainwindow)
 {
     KXMLGUIClient::setComponentName(u"kateollama"_s, i18n("Kate-Ollama"));
-    
+
     auto ac = actionCollection();
     QAction *a = ac->addAction(QStringLiteral("kateollama"));
     a->setText(i18n("Run Ollama"));
@@ -66,7 +63,8 @@ KateOllamaView::KateOllamaView(KateOllamaPlugin *, KTextEditor::MainWindow *main
 
 void KateOllamaView::printCommand()
 {
-    KTextEditor::View *view = m_mainWindow->activeView();;
+    KTextEditor::View *view = m_mainWindow->activeView();
+    ;
     if (view) {
         KTextEditor::Document *document = view->document();
         QString text = document->text();
@@ -75,7 +73,8 @@ void KateOllamaView::printCommand()
     }
 }
 
-void KateOllamaView::ollamaRequest(QString prompt) {
+void KateOllamaView::ollamaRequest(QString prompt)
+{
     KTextEditor::View *view = m_mainWindow->activeView();
     KTextEditor::Document *document = view->document();
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
@@ -91,35 +90,36 @@ void KateOllamaView::ollamaRequest(QString prompt) {
     QNetworkReply *reply = manager->post(request, doc.toJson());
 
     connect(reply, &QNetworkReply::metaDataChanged, this, [=]() {
-            KTextEditor::Cursor cursor = view->cursorPosition();
-            document->insertText(cursor, "\n");
+        KTextEditor::Cursor cursor = view->cursorPosition();
+        document->insertText(cursor, "\n");
     });
 
     connect(reply, &QNetworkReply::readyRead, this, [=]() {
-            QString responseChunk = reply->readAll();
-            QJsonDocument jsonDoc = QJsonDocument::fromJson(responseChunk.toUtf8());
-            QJsonObject jsonObj = jsonDoc.object();
+        QString responseChunk = reply->readAll();
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(responseChunk.toUtf8());
+        QJsonObject jsonObj = jsonDoc.object();
 
-            if (jsonObj.contains("response")) {
-                QString responseText = jsonObj["response"].toString();
+        if (jsonObj.contains("response")) {
+            QString responseText = jsonObj["response"].toString();
 
-                KTextEditor::Cursor cursor = view->cursorPosition();
-                document->insertText(cursor, responseText);
-            }
+            KTextEditor::Cursor cursor = view->cursorPosition();
+            document->insertText(cursor, responseText);
+        }
     });
 
     connect(reply, &QNetworkReply::finished, this, [=]() {
-            if (reply->error() != QNetworkReply::NoError) {
-                qDebug() << "Error:" << reply->errorString();
-            }
-            reply->deleteLater();
+        if (reply->error() != QNetworkReply::NoError) {
+            qDebug() << "Error:" << reply->errorString();
+        }
+        reply->deleteLater();
 
-            KTextEditor::Cursor cursor = view->cursorPosition();
-            document->insertText(cursor, "\n");
+        KTextEditor::Cursor cursor = view->cursorPosition();
+        document->insertText(cursor, "\n");
     });
 }
 
-QString KateOllamaView::getPrompt() {
+QString KateOllamaView::getPrompt()
+{
     KTextEditor::View *view = m_mainWindow->activeView();
     KTextEditor::Document *document = view->document();
     QString text = document->text();
@@ -127,7 +127,7 @@ QString KateOllamaView::getPrompt() {
     QRegularExpression re("// AI:(.*)");
     QRegularExpressionMatchIterator matchIterator = re.globalMatch(text);
     QString prompt = "";
-    
+
     while (matchIterator.hasNext()) {
         QRegularExpressionMatch match = matchIterator.next();
         prompt = match.captured(1).trimmed();
@@ -142,7 +142,7 @@ void KateOllamaView::onSinglePrompt()
     KTextEditor::View *view = m_mainWindow->activeView();
     if (view) {
         QString prompt = KateOllamaView::getPrompt();
-        if (!prompt.isEmpty()) {            
+        if (!prompt.isEmpty()) {
             KateOllamaView::ollamaRequest(prompt);
         }
     }
@@ -153,7 +153,7 @@ KateOllamaView::~KateOllamaView()
     m_mainWindow->guiFactory()->removeClient(this);
 }
 
-QObject* KateOllamaPlugin::createView(KTextEditor::MainWindow* mainwindow)
+QObject *KateOllamaPlugin::createView(KTextEditor::MainWindow *mainwindow)
 {
     return new KateOllamaView(this, mainwindow);
 }
