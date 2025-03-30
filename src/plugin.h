@@ -25,7 +25,17 @@ public:
 
     QObject *createView(KTextEditor::MainWindow *mainWindow) override;
 
-    // KTextEditor::ConfigPage *configPage(int number = 0, QWidget *parent = nullptr) override;
+    void readSettings();
+
+    int configPages() const override
+    {
+        return 1;
+    }
+
+    KTextEditor::ConfigPage *configPage(int number = 0, QWidget *parent = nullptr) override;
+
+    QString model;
+    QString systemPrompt;
 };
 class KateOllamaView : public QObject, public KXMLGUIClient
 {

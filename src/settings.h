@@ -22,7 +22,6 @@ public:
     explicit KateOllamaConfigPage(QWidget *parent = nullptr, KateOllamaPlugin *plugin = nullptr);
 
     void saveSettings();
-    void loadSettings();
     void fetchModelList();
 
 public:

@@ -34,8 +34,8 @@ find_package(KF6 ${KF6_DEP_VERSION}
 set(PROJECT_SOURCES
     src/plugin.cpp
     src/plugin.h
-    #src/settings.h
-    #src/settings.cpp
+    src/settings.h
+    src/settings.cpp
 )
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins)

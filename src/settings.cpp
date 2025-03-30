@@ -32,8 +32,6 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
 
     setLayout(layout);
 
-    loadSettings();
-
     fetchModelList();
 }
 
@@ -82,22 +80,31 @@ QIcon KateOllamaConfigPage::icon() const
     return QIcon::fromTheme(QLatin1String("project-open"), QIcon::fromTheme(QLatin1String("view-list-tree")));
 }
 
+void KateOllamaConfigPage::apply()
+{
+    saveSettings();
+}
+
 void KateOllamaConfigPage::defaults()
 {
-    reset();
+}
+
+void KateOllamaConfigPage::reset()
+{
+    // Reset the UI values to last known settings
+    comboBox->setCurrentText(m_plugin->model);
+    lineEdit->setText(m_plugin->systemPrompt);
 }
 
 void KateOllamaConfigPage::saveSettings()
 {
+    // Save settings to disk
     KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
     group.writeEntry("Model", comboBox->currentText());
     group.writeEntry("SystemPrompt", lineEdit->text());
     group.sync();
-}
 
-void KateOllamaConfigPage::loadSettings()
-{
-    KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
-    comboBox->setCurrentText(group.readEntry("Model", "llama3.2:latest"));
-    lineEdit->setText(group.readEntry("SystemPrompt", ""));
+    // Update the cached variables in Plugin
+    m_plugin->model = comboBox->currentText();
+    m_plugin->systemPrompt = lineEdit->text();
 }

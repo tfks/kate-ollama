@@ -16,8 +16,10 @@
 #include <KTextEditor/View>
 
 #include <KActionCollection>
+#include <KConfigGroup>
 #include <KLocalizedString>
 #include <KPluginFactory>
+#include <KSharedConfig>
 #include <KXMLGUIClient>
 #include <KXMLGUIFactory>
 #include <QAction>
@@ -38,6 +40,13 @@ K_PLUGIN_FACTORY_WITH_JSON(KateOllamaFactory, "kateollama.json", registerPlugin<
 KateOllamaPlugin::KateOllamaPlugin(QObject *parent, const QVariantList &)
     : KTextEditor::Plugin(parent)
 {
+}
+
+void KateOllamaPlugin::readSettings()
+{
+    KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
+    model = group.readEntry("Model", "llama3.2:latest");
+    systemPrompt = group.readEntry("SystemPrompt", "");
 }
 
 KateOllamaView::KateOllamaView(KateOllamaPlugin *, KTextEditor::MainWindow *mainwindow)
@@ -158,12 +167,12 @@ QObject *KateOllamaPlugin::createView(KTextEditor::MainWindow *mainwindow)
     return new KateOllamaView(this, mainwindow);
 }
 
-// KTextEditor::ConfigPage *KateOllamaPlugin::configPage(int number, QWidget *parent)
-// {
-//     if (number != 0) {
-//         return nullptr;
-//     }
-//     return new KateOllamaConfigPage(parent, this);
-// }
+KTextEditor::ConfigPage *KateOllamaPlugin::configPage(int number, QWidget *parent)
+{
+    if (number != 0) {
+        return nullptr;
+    }
+    return new KateOllamaConfigPage(parent, this);
+}
 
 #include <plugin.moc>
