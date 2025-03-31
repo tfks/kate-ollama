@@ -7,23 +7,24 @@
 #ifndef KATEOLLAMACONFIGPAGE_H
 #define KATEOLLAMACONFIGPAGE_H
 
-#include <QWidget>
-#include <QComboBox>
-#include <QLineEdit>
 #include <KTextEditor/ConfigPage>
 
 class KateOllamaPlugin;
+class QLabel;
+class QComboBox;
+class QLineEdit;
+class QWidget;
 
-class KateOllamaConfigPage : public KTextEditor::ConfigPage {
+class KateOllamaConfigPage : public KTextEditor::ConfigPage
+{
     Q_OBJECT
 
 public:
     explicit KateOllamaConfigPage(QWidget *parent = nullptr, KateOllamaPlugin *plugin = nullptr);
 
     void saveSettings();
-    void loadSettings();
     void fetchModelList();
-       
+
 public:
     QString name() const override;
     QString fullName() const override;
@@ -31,14 +32,15 @@ public:
 
 public:
     void apply() override;
-    void defaults() override;    
+    void defaults() override;
     void reset() override;
 
 private:
-    QComboBox *comboBox;
-    QLineEdit *lineEdit;
-    
-    KateOllamaPlugin *m_plugin;
+    QComboBox *m_modelsComboBox;
+    QLineEdit *m_systemPromptEdit;
+    QLabel *m_infoLabel;
+
+    KateOllamaPlugin *const m_plugin;
 };
 
 #endif // KATEOLLAMACONFIGPAGE_H

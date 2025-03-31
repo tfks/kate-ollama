@@ -6,16 +6,21 @@
 
 #include "settings.h"
 #include "plugin.h"
+
 #include <KConfigGroup>
-#include <KSharedConfig>
 #include <KLocalizedString>
+#include <KSharedConfig>
 #include <KTextEditor/ConfigPage>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
+
+#include <QComboBox>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
+#include <QLabel>
+#include <QLineEdit>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QVBoxLayout>
 
 KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *plugin)
@@ -24,23 +29,54 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
 
-    comboBox = new QComboBox(this);
-    layout->addWidget(comboBox);
+    // Available Models
+    {
+        auto *hl = new QHBoxLayout;
 
-    lineEdit = new QLineEdit(this);
-    layout->addWidget(lineEdit);
+        auto label = new QLabel(i18n("Available Models"));
+        hl->addWidget(label);
+
+        m_modelsComboBox = new QComboBox(this);
+        hl->addWidget(m_modelsComboBox);
+
+        layout->addLayout(hl);
+    }
+
+    // System Prompt
+    {
+        auto *hl = new QHBoxLayout;
+
+        auto label = new QLabel(i18n("System Prompt"));
+        hl->addWidget(label);
+
+        m_systemPromptEdit = new QLineEdit(this);
+        hl->addWidget(m_systemPromptEdit);
+
+        layout->addLayout(hl);
+    }
+
+    layout->addStretch();
+
+    // Error/Info label
+    {
+        m_infoLabel = new QLabel(this);
+        m_infoLabel->setVisible(false); // its hidden initially
+        m_infoLabel->setWordWrap(true);
+        layout->addWidget(m_infoLabel);
+    }
 
     setLayout(layout);
 
-    loadSettings();
-    
     fetchModelList();
 }
 
-void KateOllamaConfigPage::fetchModelList() {
+void KateOllamaConfigPage::fetchModelList()
+{
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     connect(manager, &QNetworkAccessManager::finished, this, [this](QNetworkReply *reply) {
         if (reply->error() == QNetworkReply::NoError) {
+            m_infoLabel->setVisible(false); // Hide the label on success
+
             QByteArray responseData = reply->readAll();
             QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
 
@@ -50,13 +86,15 @@ void KateOllamaConfigPage::fetchModelList() {
                     QJsonArray modelsArray = jsonObj["models"].toArray();
                     for (const QJsonValue &modelValue : modelsArray) {
                         if (modelValue.isString()) {
-                            comboBox->addItem(modelValue.toString());
+                            m_modelsComboBox->addItem(modelValue.toString());
                         }
                     }
                 }
             }
         } else {
             qWarning() << "Error fetching model list:" << reply->errorString();
+            // Show error in UI
+            m_infoLabel->setText(i18n("Error fetching model list: %1", reply->errorString()));
         }
         reply->deleteLater();
     });
@@ -64,6 +102,9 @@ void KateOllamaConfigPage::fetchModelList() {
     QUrl url("http://localhost:11434/models");
     QNetworkRequest request(url);
     manager->get(request);
+
+    m_infoLabel->setText(i18n("Loading model list..."));
+    m_infoLabel->setVisible(true);
 }
 
 QString KateOllamaConfigPage::name() const
@@ -81,20 +122,31 @@ QIcon KateOllamaConfigPage::icon() const
     return QIcon::fromTheme(QLatin1String("project-open"), QIcon::fromTheme(QLatin1String("view-list-tree")));
 }
 
+void KateOllamaConfigPage::apply()
+{
+    saveSettings();
+}
+
 void KateOllamaConfigPage::defaults()
 {
-    reset();
 }
 
-void KateOllamaConfigPage::saveSettings() {
+void KateOllamaConfigPage::reset()
+{
+    // Reset the UI values to last known settings
+    m_modelsComboBox->setCurrentText(m_plugin->model);
+    m_systemPromptEdit->setText(m_plugin->systemPrompt);
+}
+
+void KateOllamaConfigPage::saveSettings()
+{
+    // Save settings to disk
     KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
-    group.writeEntry("Model", comboBox->currentText());
-    group.writeEntry("SystemPrompt", lineEdit->text());
+    group.writeEntry("Model", m_modelsComboBox->currentText());
+    group.writeEntry("SystemPrompt", m_systemPromptEdit->text());
     group.sync();
-}
 
-void KateOllamaConfigPage::loadSettings() {
-    KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
-    comboBox->setCurrentText(group.readEntry("Model", "llama3.2:latest"));
-    lineEdit->setText(group.readEntry("SystemPrompt", ""));
+    // Update the cached variables in Plugin
+    m_plugin->model = m_modelsComboBox->currentText();
+    m_plugin->systemPrompt = m_systemPromptEdit->text();
 }
