@@ -129,12 +129,13 @@ void KateOllamaView::ollamaRequest(QString prompt)
 
     QNetworkReply *reply = manager->post(request, doc.toJson());
 
-    connect(reply, &QNetworkReply::metaDataChanged, this, [=]() {
+    connect(reply, &QNetworkReply::metaDataChanged, this, [=, this]() {
         KTextEditor::Cursor cursor = view->cursorPosition();
         document->insertText(cursor, "\n");
+        showMessage(QStringLiteral("Info: Request started..."), MessageType::Info, m_mainWindow);
     });
 
-    connect(reply, &QNetworkReply::readyRead, this, [=]() {
+    connect(reply, &QNetworkReply::readyRead, this, [=, this]() {
         QString responseChunk = reply->readAll();
         QJsonDocument jsonDoc = QJsonDocument::fromJson(responseChunk.toUtf8());
         QJsonObject jsonObj = jsonDoc.object();

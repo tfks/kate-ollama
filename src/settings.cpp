@@ -64,7 +64,7 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
         hl->addWidget(label);
 
         m_systemPromptEdit = new QTextEdit(this);
-        m_systemPromptEdit->setGeometry(100, 100, 400, 300);
+        m_systemPromptEdit->setGeometry(100, 100, 300, 200);
         hl->addWidget(m_systemPromptEdit);
 
         layout->addLayout(hl);
@@ -159,7 +159,7 @@ void KateOllamaConfigPage::apply()
 void KateOllamaConfigPage::defaults()
 {
     m_ollamaURLText->setText("http://localhost:11434");
-    m_systemPromptEdit->setPlainText("You are a smart coder assistant, code comments are in the prompt language. You don't explain but you add only code comments on important stuff.");
+    m_systemPromptEdit->setPlainText("You are a smart coder assistant, code comments are in the prompt language. You don't explain, you add only code comments.");
 }
 
 void KateOllamaConfigPage::reset()
@@ -178,15 +178,16 @@ void KateOllamaConfigPage::loadSettings()
     QString url = group.readEntry("URL");
     QString systemPrompt = group.readEntry("SystemPrompt");
 
-    m_modelsComboBox->setCurrentText(model);
-    m_ollamaURLText->setText(url);
-    m_systemPromptEdit->setPlainText(systemPrompt);
-
     if (url.isEmpty()) {
         defaults();
+    } else {
+        m_modelsComboBox->setCurrentText(model);
+        m_ollamaURLText->setText(url);
+        m_systemPromptEdit->setPlainText(systemPrompt);
     }
+    
+    fetchModelList();
     m_plugin->model = m_modelsComboBox->currentText();
     m_plugin->systemPrompt = m_systemPromptEdit->toPlainText();
     m_plugin->ollamaURL = m_ollamaURLText->text();
-    fetchModelList();
 }
