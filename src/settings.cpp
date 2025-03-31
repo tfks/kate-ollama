@@ -85,6 +85,9 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
     defaults();
     
     fetchModelList();
+    QObject::connect(m_modelsComboBox, &QComboBox::currentIndexChanged, this, &KateOllamaConfigPage::changed);
+    QObject::connect(m_systemPromptEdit, &QTextEdit::textChanged, this, &KateOllamaConfigPage::changed);
+    QObject::connect(m_ollamaURLText, &QLineEdit::textEdited, this, &KateOllamaConfigPage::changed);
 }
 
 void KateOllamaConfigPage::fetchModelList()
