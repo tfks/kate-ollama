@@ -67,14 +67,6 @@ KateOllamaPlugin::KateOllamaPlugin(QObject *parent, const QVariantList &)
 {
 }
 
-void KateOllamaPlugin::readSettings()
-{
-    KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
-    model = group.readEntry("Model", "llama3.2:latest");
-    systemPrompt = group.readEntry("SystemPrompt", "");
-    ollamaURL = group.readEntry("URL", "");
-}
-
 KateOllamaView::KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainwindow)
     : KXMLGUIClient()
     , m_plugin(plugin)

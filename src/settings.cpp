@@ -82,9 +82,7 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
 
     setLayout(layout);
     
-    defaults();
-    
-    fetchModelList();
+    loadSettings();
     QObject::connect(m_modelsComboBox, &QComboBox::currentIndexChanged, this, &KateOllamaConfigPage::changed);
     QObject::connect(m_systemPromptEdit, &QTextEdit::textChanged, this, &KateOllamaConfigPage::changed);
     QObject::connect(m_ollamaURLText, &QLineEdit::textEdited, this, &KateOllamaConfigPage::changed);
@@ -160,6 +158,27 @@ void KateOllamaConfigPage::reset()
     m_modelsComboBox->setCurrentText(m_plugin->model);
     m_systemPromptEdit->setPlainText(m_plugin->systemPrompt);
     m_ollamaURLText->setText(m_plugin->ollamaURL);
+}
+
+void KateOllamaConfigPage::loadSettings()
+{
+    KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
+    
+    QString model = group.readEntry("Model");
+    QString url = group.readEntry("URL");
+    QString systemPrompt = group.readEntry("SystemPrompt");
+
+    m_modelsComboBox->setCurrentText(model);
+    m_ollamaURLText->setText(url);
+    m_systemPromptEdit->setPlainText(systemPrompt);
+
+    if (url.isEmpty()) {
+        defaults();
+    }
+    m_plugin->model = m_modelsComboBox->currentText();
+    m_plugin->systemPrompt = m_systemPromptEdit->toPlainText();
+    m_plugin->ollamaURL = m_ollamaURLText->text();
+    fetchModelList();
 }
 
 void KateOllamaConfigPage::saveSettings()
