@@ -36,6 +36,7 @@ public:
 
     QString model;
     QString systemPrompt;
+    QString ollamaURL;
 };
 class KateOllamaView : public QObject, public KXMLGUIClient
 {

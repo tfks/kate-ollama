@@ -72,6 +72,7 @@ void KateOllamaPlugin::readSettings()
     KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
     model = group.readEntry("Model", "llama3.2:latest");
     systemPrompt = group.readEntry("SystemPrompt", "");
+    ollamaURL = group.readEntry("URL", "");
 }
 
 KateOllamaView::KateOllamaView(KateOllamaPlugin *, KTextEditor::MainWindow *mainwindow)
@@ -161,15 +162,14 @@ QString KateOllamaView::getPrompt()
 
     QRegularExpression re("// AI:(.*)");
     QRegularExpressionMatchIterator matchIterator = re.globalMatch(text);
-    QString prompt = "";
 
     while (matchIterator.hasNext()) {
         QRegularExpressionMatch match = matchIterator.next();
-        prompt = match.captured(1).trimmed();
+        qDebug() << "Ollama prompt:" << match.captured(1).trimmed();
+        return match.captured(1).trimmed();
     }
-    qDebug() << "Ollama prompt:" << prompt;
 
-    return prompt;
+    return {};
 }
 
 void KateOllamaView::onSinglePrompt()

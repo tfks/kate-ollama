@@ -17,6 +17,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLabel>
+#include <QTextEdit>
 #include <QLineEdit>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -28,6 +29,19 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
     , m_plugin(plugin)
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
+    
+    // URL
+    {
+        auto *hl = new QHBoxLayout;
+
+        auto label = new QLabel(i18n("Ollama URL"));
+        hl->addWidget(label);
+
+        m_ollamaURLText = new QLineEdit(this);
+        hl->addWidget(m_ollamaURLText);
+
+        layout->addLayout(hl);
+    }
 
     // Available Models
     {
@@ -49,7 +63,8 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
         auto label = new QLabel(i18n("System Prompt"));
         hl->addWidget(label);
 
-        m_systemPromptEdit = new QLineEdit(this);
+        m_systemPromptEdit = new QTextEdit(this);
+        m_systemPromptEdit->setGeometry(100, 100, 400, 300);
         hl->addWidget(m_systemPromptEdit);
 
         layout->addLayout(hl);
@@ -66,7 +81,9 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
     }
 
     setLayout(layout);
-
+    
+    defaults();
+    
     fetchModelList();
 }
 
@@ -85,8 +102,9 @@ void KateOllamaConfigPage::fetchModelList()
                 if (jsonObj.contains("models") && jsonObj["models"].isArray()) {
                     QJsonArray modelsArray = jsonObj["models"].toArray();
                     for (const QJsonValue &modelValue : modelsArray) {
-                        if (modelValue.isString()) {
-                            m_modelsComboBox->addItem(modelValue.toString());
+                        QJsonObject modelObj = modelValue.toObject();
+                        if (modelObj.contains("name")) {
+                            m_modelsComboBox->addItem(modelObj["name"].toString());
                         }
                     }
                 }
@@ -99,7 +117,7 @@ void KateOllamaConfigPage::fetchModelList()
         reply->deleteLater();
     });
 
-    QUrl url("http://localhost:11434/models");
+    QUrl url(m_ollamaURLText->text() + "/api/tags");
     QNetworkRequest request(url);
     manager->get(request);
 
@@ -129,13 +147,16 @@ void KateOllamaConfigPage::apply()
 
 void KateOllamaConfigPage::defaults()
 {
+    m_ollamaURLText->setText("http://localhost:11434");
+    m_systemPromptEdit->setPlainText("You are a smart coder assistant, code comments are in the prompt language.");
 }
 
 void KateOllamaConfigPage::reset()
 {
     // Reset the UI values to last known settings
     m_modelsComboBox->setCurrentText(m_plugin->model);
-    m_systemPromptEdit->setText(m_plugin->systemPrompt);
+    m_systemPromptEdit->setPlainText(m_plugin->systemPrompt);
+    m_ollamaURLText->setText(m_plugin->ollamaURL);
 }
 
 void KateOllamaConfigPage::saveSettings()
@@ -143,10 +164,12 @@ void KateOllamaConfigPage::saveSettings()
     // Save settings to disk
     KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
     group.writeEntry("Model", m_modelsComboBox->currentText());
-    group.writeEntry("SystemPrompt", m_systemPromptEdit->text());
+    group.writeEntry("URL", m_ollamaURLText->text());
+    group.writeEntry("SystemPrompt", m_systemPromptEdit->toPlainText());
     group.sync();
 
     // Update the cached variables in Plugin
     m_plugin->model = m_modelsComboBox->currentText();
-    m_plugin->systemPrompt = m_systemPromptEdit->text();
+    m_plugin->systemPrompt = m_systemPromptEdit->toPlainText();
+    m_plugin->ollamaURL = m_ollamaURLText->text();
 }
