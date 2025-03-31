@@ -73,6 +73,11 @@ KateOllamaView::KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow
     , m_mainWindow(mainwindow)
 {
     KXMLGUIClient::setComponentName(u"kateollama"_s, i18n("Kate-Ollama"));
+    KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
+    
+    m_plugin->model = group.readEntry("Model");
+    m_plugin->systemPrompt = group.readEntry("SystemPrompt");
+    m_plugin->ollamaURL = group.readEntry("URL");
 
     auto ac = actionCollection();
     QAction *a = ac->addAction(QStringLiteral("kateollama"));
@@ -80,11 +85,17 @@ KateOllamaView::KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow
     a->setIcon(QIcon::fromTheme(QStringLiteral("debug-run")));
     KActionCollection::setDefaultShortcut(a, QKeySequence((Qt::CTRL | Qt::Key_Semicolon)));
     connect(a, &QAction::triggered, this, &KateOllamaView::onSinglePrompt);
+    
+    QAction *a2 = ac->addAction(QStringLiteral("kateollama-full-prompt"));
+    a2->setText(i18n("Run Ollama Full Text"));
+    a2->setIcon(QIcon::fromTheme(QStringLiteral("debug-run")));
+    KActionCollection::setDefaultShortcut(a2, QKeySequence((Qt::CTRL | Qt::SHIFT | Qt::Key_Semicolon)));
+    connect(a2, &QAction::triggered, this, &KateOllamaView::onFullPrompt);
 
-    QAction *a2 = ac->addAction(QStringLiteral("kateollama-command"));
-    a2->setText(i18n("Add Ollama Command"));
-    KActionCollection::setDefaultShortcut(a2, QKeySequence((Qt::CTRL | Qt::Key_Slash)));
-    connect(a2, &QAction::triggered, this, &KateOllamaView::printCommand);
+    QAction *a3 = ac->addAction(QStringLiteral("kateollama-command"));
+    a3->setText(i18n("Add Ollama Command"));
+    KActionCollection::setDefaultShortcut(a3, QKeySequence((Qt::CTRL | Qt::Key_Slash)));
+    connect(a3, &QAction::triggered, this, &KateOllamaView::printCommand);
 
     m_mainWindow->guiFactory()->addClient(this);
 }
@@ -140,6 +151,8 @@ void KateOllamaView::ollamaRequest(QString prompt)
         if (reply->error() != QNetworkReply::NoError) {
             showMessage(QStringLiteral("Error: ").arg(reply->errorString()), MessageType::Error, m_mainWindow);
             qDebug() << "Error:" << reply->errorString();
+            qDebug() << "Model:" << m_plugin->model;
+            qDebug() << "System prompt:" << m_plugin->systemPrompt;
         }
         reply->deleteLater();
 
@@ -157,13 +170,15 @@ QString KateOllamaView::getPrompt()
     QRegularExpression re("// AI:(.*)");
     QRegularExpressionMatchIterator matchIterator = re.globalMatch(text);
 
+    QString lastMatch;
+
     while (matchIterator.hasNext()) {
         QRegularExpressionMatch match = matchIterator.next();
-        qDebug() << "Ollama prompt:" << match.captured(1).trimmed();
-        return match.captured(1).trimmed();
+        lastMatch = match.captured(1).trimmed();
     }
+    qDebug() << "Ollama prompt:" << lastMatch;
 
-    return {};
+    return lastMatch;
 }
 
 void KateOllamaView::onSinglePrompt()
@@ -173,6 +188,19 @@ void KateOllamaView::onSinglePrompt()
         QString prompt = KateOllamaView::getPrompt();
         if (!prompt.isEmpty()) {
             KateOllamaView::ollamaRequest(prompt);
+        }
+    }
+}
+
+void KateOllamaView::onFullPrompt()
+{
+    KTextEditor::View *view = m_mainWindow->activeView();
+    KTextEditor::Document *document = view->document();
+    QString text = document->text();
+    if (view) {
+        QString prompt = KateOllamaView::getPrompt();
+        if (!prompt.isEmpty()) {
+            KateOllamaView::ollamaRequest(text + "\n" + prompt);
         }
     }
 }

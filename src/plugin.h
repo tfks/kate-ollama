@@ -47,6 +47,7 @@ public:
 
 private slots:
     void onSinglePrompt();
+    void onFullPrompt();
     void ollamaRequest(QString prompt);
     void printCommand();
     QString getPrompt();

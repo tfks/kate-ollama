@@ -3,8 +3,7 @@
 
 **Experimental** plugin to integrate Ollama in Kate.
 
-Write a text that starts with "// AI: [your prompt]".
-The model is hardcoded as `llama3.2:latest`.
+Write a text that starts with `// AI: [your prompt]`.
 
 [(Tiny) Video](https://github.com/user-attachments/assets/a26e3b90-9a32-4092-82be-bf874fbd7c4f)
 
@@ -12,6 +11,7 @@ The model is hardcoded as `llama3.2:latest`.
 
 * `Ctrl + /`: prints `// AI: `
 * `Ctrl + ;`: execute Ollama with the `generate` endpoint, so doesn't have memory of what was already executed
+* `Ctrl + Shift + ;`: execute Ollama with the `generate` endpoint, but with the whole content injected before the prompt
 
 ## Installation instructions
 

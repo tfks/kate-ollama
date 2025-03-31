@@ -143,13 +143,23 @@ QIcon KateOllamaConfigPage::icon() const
 
 void KateOllamaConfigPage::apply()
 {
-    saveSettings();
+    // Save settings to disk
+    KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
+    group.writeEntry("Model", m_modelsComboBox->currentText());
+    group.writeEntry("URL", m_ollamaURLText->text());
+    group.writeEntry("SystemPrompt", m_systemPromptEdit->toPlainText());
+    group.sync();
+
+    // Update the cached variables in Plugin
+    m_plugin->model = m_modelsComboBox->currentText();
+    m_plugin->systemPrompt = m_systemPromptEdit->toPlainText();
+    m_plugin->ollamaURL = m_ollamaURLText->text();
 }
 
 void KateOllamaConfigPage::defaults()
 {
     m_ollamaURLText->setText("http://localhost:11434");
-    m_systemPromptEdit->setPlainText("You are a smart coder assistant, code comments are in the prompt language.");
+    m_systemPromptEdit->setPlainText("You are a smart coder assistant, code comments are in the prompt language. You don't explain but you add only code comments on important stuff.");
 }
 
 void KateOllamaConfigPage::reset()
@@ -179,19 +189,4 @@ void KateOllamaConfigPage::loadSettings()
     m_plugin->systemPrompt = m_systemPromptEdit->toPlainText();
     m_plugin->ollamaURL = m_ollamaURLText->text();
     fetchModelList();
-}
-
-void KateOllamaConfigPage::saveSettings()
-{
-    // Save settings to disk
-    KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
-    group.writeEntry("Model", m_modelsComboBox->currentText());
-    group.writeEntry("URL", m_ollamaURLText->text());
-    group.writeEntry("SystemPrompt", m_systemPromptEdit->toPlainText());
-    group.sync();
-
-    // Update the cached variables in Plugin
-    m_plugin->model = m_modelsComboBox->currentText();
-    m_plugin->systemPrompt = m_systemPromptEdit->toPlainText();
-    m_plugin->ollamaURL = m_ollamaURLText->text();
 }
