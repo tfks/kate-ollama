@@ -75,8 +75,9 @@ void KateOllamaPlugin::readSettings()
     ollamaURL = group.readEntry("URL", "");
 }
 
-KateOllamaView::KateOllamaView(KateOllamaPlugin *, KTextEditor::MainWindow *mainwindow)
+KateOllamaView::KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainwindow)
     : KXMLGUIClient()
+    , m_plugin(plugin)
     , m_mainWindow(mainwindow)
 {
     KXMLGUIClient::setComponentName(u"kateollama"_s, i18n("Kate-Ollama"));
@@ -114,11 +115,12 @@ void KateOllamaView::ollamaRequest(QString prompt)
     KTextEditor::Document *document = view->document();
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
 
-    QNetworkRequest request(QUrl("http://localhost:11434/api/generate"));
+    QNetworkRequest request(QUrl(m_plugin->ollamaURL + "/api/generate"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     QJsonObject json;
-    json.insert("model", "llama3.2:latest");
+    json.insert("model", m_plugin->model);
+    json.insert("system", m_plugin->systemPrompt);
     json.insert("prompt", prompt);
     QJsonDocument doc(json);
 

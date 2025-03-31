@@ -52,6 +52,7 @@ private slots:
     QString getPrompt();
 
 private:
+    KateOllamaPlugin *m_plugin = nullptr;
     KTextEditor::MainWindow *m_mainWindow = nullptr;
 };
 #endif // KATEOLLAMAPLUGIN_H
