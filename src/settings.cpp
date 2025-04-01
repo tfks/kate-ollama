@@ -23,6 +23,8 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QVBoxLayout>
+#include <QList>
+#include <algorithm>
 
 KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *plugin)
     : KTextEditor::ConfigPage(parent)
@@ -102,11 +104,28 @@ void KateOllamaConfigPage::fetchModelList()
                 QJsonObject jsonObj = jsonDoc.object();
                 if (jsonObj.contains("models") && jsonObj["models"].isArray()) {
                     QJsonArray modelsArray = jsonObj["models"].toArray();
-                    for (const QJsonValue &modelValue : modelsArray) {
+                    QList<QJsonValue> modelsList;
+                    for (const QJsonValue &value : modelsArray) {
+                        modelsList.append(value);
+                    }
+                    std::sort(modelsList.begin(), modelsList.end(), [](const QJsonValue &a, const QJsonValue &b) {
+                        return a.toObject()["name"].toString().toLower() < b.toObject()["name"].toString().toLower();
+                    });
+                    
+                    int modelSelected = -1;
+                    for (const QJsonValue &modelValue : modelsList) {
                         QJsonObject modelObj = modelValue.toObject();
                         if (modelObj.contains("name")) {
                             m_modelsComboBox->addItem(modelObj["name"].toString());
                         }
+                        
+                        if (modelObj["name"].toString() == m_plugin->model) {
+                            modelSelected = m_modelsComboBox->count();
+                        }
+                    }
+                    
+                    if (modelSelected != -1) {
+                        m_modelsComboBox->setCurrentIndex(modelSelected - 1);
                     }
                 }
             }
@@ -180,14 +199,14 @@ void KateOllamaConfigPage::loadSettings()
 
     if (url.isEmpty()) {
         defaults();
-    } else {
-        m_modelsComboBox->setCurrentText(model);
-        m_ollamaURLText->setText(url);
-        m_systemPromptEdit->setPlainText(systemPrompt);
-    }
+    } 
     
-    fetchModelList();
-    m_plugin->model = m_modelsComboBox->currentText();
+    m_ollamaURLText->setText(url);
+    m_systemPromptEdit->setPlainText(systemPrompt);
+    
     m_plugin->systemPrompt = m_systemPromptEdit->toPlainText();
     m_plugin->ollamaURL = m_ollamaURLText->text();
+    m_plugin->model = model;
+
+    fetchModelList();
 }
