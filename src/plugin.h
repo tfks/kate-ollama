@@ -23,6 +23,7 @@ class KateOllamaPlugin : public KTextEditor::Plugin
 public:
     explicit KateOllamaPlugin(QObject *parent, const QVariantList & = QVariantList());
 
+    QObject *createToolWindow(KTextEditor::MainWindow *mainWindow);
     QObject *createView(KTextEditor::MainWindow *mainWindow) override;
 
     void readSettings();
@@ -34,26 +35,19 @@ public:
 
     KTextEditor::ConfigPage *configPage(int number = 0, QWidget *parent = nullptr) override;
 
-    QString model;
-    QString systemPrompt;
-    QString ollamaURL;
-};
-class KateOllamaView : public QObject, public KXMLGUIClient
-{
-    Q_OBJECT
-public:
-    explicit KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainwindow);
-    ~KateOllamaView();
+    void setModel(QString model);
+    QString getModel();
 
-private slots:
-    void onSinglePrompt();
-    void onFullPrompt();
-    void ollamaRequest(QString prompt);
-    void printCommand();
-    QString getPrompt();
+    void setSystemPrompt(QString systemPrompt);
+    QString getSystemPrompt();
+
+    void setOllamaUrl(QString ollamaUrl);
+    QString getOllamaUrl();
 
 private:
-    KateOllamaPlugin *m_plugin = nullptr;
-    KTextEditor::MainWindow *m_mainWindow = nullptr;
+    QString model_;
+    QString systemPrompt_;
+    QString ollamaUrl_;
 };
+
 #endif // KATEOLLAMAPLUGIN_H

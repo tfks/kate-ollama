@@ -1,0 +1,40 @@
+/*
+ *  SPDX-FileCopyrightText: 2025 tfks <development@worloflinux.nl>
+ *
+ *  SPDX-License-Identifier: LGPL-2.0-or-later
+ */
+#ifndef KATEOLLAMAVIEW_H
+#define KATEOLLAMAVIEW_H
+
+#include <KTextEditor/Plugin>
+
+#include <KXMLGUIClient>
+#include <QObject>
+
+#include "toolwindow.h"
+
+class KateOllamaPlugin;
+
+class KateOllamaView : public QObject, public KXMLGUIClient
+{
+    Q_OBJECT
+public:
+    explicit KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainwindow);
+    ~KateOllamaView();
+
+    QObject *createToolWindow(KTextEditor::MainWindow *mainWindow);
+
+private slots:
+    void onSinglePrompt();
+    void onFullPrompt();
+    void ollamaRequest(QString prompt);
+    void printCommand();
+    QString getPrompt();
+
+private:
+    KateOllamaPlugin *m_plugin = nullptr;
+    KTextEditor::MainWindow *m_mainWindow = nullptr;
+    OllamaToolWindow *m_toolWindow = nullptr;
+};
+
+#endif // KATEOLLAMAVIEW_H
