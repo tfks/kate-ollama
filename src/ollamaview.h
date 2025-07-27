@@ -35,6 +35,8 @@ private:
     KateOllamaPlugin *m_plugin = nullptr;
     KTextEditor::MainWindow *m_mainWindow = nullptr;
     OllamaToolWindow *m_toolWindow = nullptr;
+
+    std::unique_ptr<QWidget> m_toolview;
 };
 
 #endif // KATEOLLAMAVIEW_H

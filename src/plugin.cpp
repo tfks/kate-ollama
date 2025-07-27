@@ -62,7 +62,7 @@ KateOllamaPlugin::KateOllamaPlugin(QObject *parent, const QVariantList &)
 
 QObject *KateOllamaPlugin::createToolWindow(KTextEditor::MainWindow *mainWindow)
 {
-    return new OllamaToolWindow(this, mainWindow);
+    return new OllamaToolWindow(mainWindow);
 }
 
 QObject *KateOllamaPlugin::createView(KTextEditor::MainWindow *mainwindow)

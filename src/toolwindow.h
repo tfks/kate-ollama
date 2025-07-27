@@ -13,13 +13,13 @@
 
 // #include "plugin.h"
 
-class OllamaToolWindow : public QObject, public KXMLGUIClient
+class OllamaToolWindow : public QWidget
 {
     Q_OBJECT
 
 public:
     // Constructor
-    explicit OllamaToolWindow(KTextEditor::Plugin *plugin, KTextEditor::MainWindow *mainwindow);
+    explicit OllamaToolWindow(KTextEditor::MainWindow *mainWindow, QWidget *parent = nullptr);
 
     // Destructor
     virtual ~OllamaToolWindow();
@@ -28,7 +28,5 @@ public:
 
 private:
     KTextEditor::MainWindow *m_mainWindow = nullptr;
-    std::unique_ptr<QWidget> m_toolview;
-    QTextBrowser *m_previewer = nullptr;
 };
 #endif // OLLAMATOOLWINDOW_HEADER_H

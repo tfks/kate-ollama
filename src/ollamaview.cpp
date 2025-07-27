@@ -76,6 +76,22 @@ KateOllamaView::KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow
     connect(a3, &QAction::triggered, this, &KateOllamaView::printCommand);
 
     m_mainWindow->guiFactory()->addClient(this);
+
+    auto toolview =
+        m_mainWindow->createToolView(plugin, "ollamatoolwindow", KTextEditor::MainWindow::Bottom, QIcon::fromTheme("applications-all"), i18n("Ollama"));
+
+    m_toolview.reset(toolview);
+
+    // Create custom widget here.
+
+    // m_previewer = new QTextBrowser(m_toolview.get());
+    //  Add the widget to our toolview
+    // m_toolview->layout()->addWidget(m_previewer);
+}
+
+KateOllamaView::~KateOllamaView()
+{
+    m_mainWindow->guiFactory()->removeClient(this);
 }
 
 void KateOllamaView::printCommand()
@@ -216,9 +232,4 @@ void KateOllamaView::onFullPrompt()
     } else {
         Messages::showStatusMessage(QStringLiteral("Info: Full prompt, no view..."), KTextEditor::Message::Information, m_mainWindow);
     }
-}
-
-KateOllamaView::~KateOllamaView()
-{
-    m_mainWindow->guiFactory()->removeClient(this);
 }
