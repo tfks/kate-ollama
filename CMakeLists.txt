@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(kateollama VERSION 0.1 LANGUAGES CXX)
+project(
+  kateollama
+  VERSION 0.1
+  LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -24,25 +27,33 @@ include(FeatureSummary)
 set(QT_MAJOR_VERSION "6")
 set(QT_MIN_VERSION "6.5.0")
 set(KF6_DEP_VERSION "6.0.0")
-find_package(KF6 ${KF6_DEP_VERSION}
-    REQUIRED COMPONENTS
-        CoreAddons # Core addons on top of QtCore
-        I18n # For localization
-        TextEditor # The editor component
+find_package(
+  KF6 ${KF6_DEP_VERSION} REQUIRED
+  COMPONENTS CoreAddons # Core addons on top of QtCore
+             I18n # For localization
+             TextEditor # The editor component
 )
 
 set(PROJECT_SOURCES
-    src/plugin.cpp
     src/plugin.h
+    src/plugin.cpp
     src/settings.h
     src/settings.cpp
-)
+    src/ollamadata.h
+    src/ollamadata.cpp
+    src/ollamaview.h
+    src/ollamaview.cpp
+    src/toolwindow.h
+    src/toolwindow.cpp
+    src/messages.h
+    src/messages.cpp)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins)
 
 kcoreaddons_add_plugin(kateollama INSTALL_NAMESPACE "kf6/ktexteditor")
 target_compile_definitions(kateollama PRIVATE TRANSLATION_DOMAIN="kateollama")
 target_link_libraries(kateollama PRIVATE KF6::I18n KF6::TextEditor)
-target_sources(kateollama  PRIVATE ${PROJECT_SOURCES})
+target_sources(kateollama PRIVATE ${PROJECT_SOURCES})
 
-feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
+feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES
+                         FATAL_ON_MISSING_REQUIRED_PACKAGES)

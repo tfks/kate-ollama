@@ -1,3 +1,20 @@
 build
 .clang-format
 ktexteditor
+ai-conversations.txt
+.cache
+.kateproject.build
+.qtcreator
+
+# Ignore all files in the following directories
+/build/
+/.idea/
+/*.userprefs
+*.kate-swp
+
+# Specific file types
+*.~
+*~
+# CMake specific
+CMakeLists.txt.user
+cmake-build-*
