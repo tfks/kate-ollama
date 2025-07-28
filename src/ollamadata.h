@@ -18,6 +18,11 @@ public:
     // Default destructor
     ~OllamaData();
 
+    // (required) Sets the Ollama URL
+    void setOllamaUrl(QString url);
+    // (required) Gets the Ollama URL
+    QString getOllamaUrl();
+
     // (required) Sets the model name
     void setModel(const QString &model);
     // (required) Gets the model name
@@ -52,10 +57,10 @@ public:
 
     // Sets the system message (prompt) which is used.
     // Set this system message (prompt) to (overrides what is defined in the Modelfile)
-    void setSystem(const QString &system);
+    void setSystemPrompt(const QString &system);
     // Gets the system message (prompt) which is used.
     // Set this system message (prompt) to (overrides what is defined in the Modelfile)
-    QString getSystem() const;
+    QString getSystemPrompt() const;
 
     // Sets the context parameter returned from a previous request to /generate, this can be used to keep a short conversation
     void setContext(bool context);
@@ -85,6 +90,7 @@ public:
     QJsonObject toJson() const;
 
 private:
+    QString url_;
     QString model_;
     QString prompt_;
     QString suffix_;

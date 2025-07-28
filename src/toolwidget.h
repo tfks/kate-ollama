@@ -3,30 +3,35 @@
  *
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
-#ifndef OLLAMATOOLWINDOW_HEADER_H
-#define OLLAMATOOLWINDOW_HEADER_H
+#ifndef OLLAMATOOLWIDGET_HEADER_H
+#define OLLAMATOOLWIDGET_HEADER_H
 
 #include <KTextEditor/MainWindow>
 
 #include <KXMLGUIClient>
+#include <QTabWidget>
 #include <QTextBrowser>
 
 // #include "plugin.h"
 
-class OllamaToolWindow : public QWidget
+class OllamaToolWidget : public QWidget
 {
     Q_OBJECT
 
 public:
     // Constructor
-    explicit OllamaToolWindow(KTextEditor::MainWindow *mainWindow, QWidget *parent = nullptr);
+    explicit OllamaToolWidget(KTextEditor::MainWindow *mainWindow, QWidget *parent = nullptr);
 
     // Destructor
-    virtual ~OllamaToolWindow();
+    virtual ~OllamaToolWidget();
+
+    // Add's a new tab
+    void newTab();
 
     void onViewChanged(KTextEditor::View *v);
 
 private:
     KTextEditor::MainWindow *m_mainWindow = nullptr;
+    QTabWidget m_tabWidget;
 };
-#endif // OLLAMATOOLWINDOW_HEADER_H
+#endif // OLLAMATOOLWIDGET_HEADER_H

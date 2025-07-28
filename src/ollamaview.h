@@ -11,7 +11,7 @@
 #include <KXMLGUIClient>
 #include <QObject>
 
-#include "toolwindow.h"
+#include "toolwidget.h"
 
 class KateOllamaPlugin;
 
@@ -34,7 +34,7 @@ private slots:
 private:
     KateOllamaPlugin *m_plugin = nullptr;
     KTextEditor::MainWindow *m_mainWindow = nullptr;
-    OllamaToolWindow *m_toolWindow = nullptr;
+    OllamaToolWidget *m_toolWidget = nullptr;
 
     std::unique_ptr<QWidget> m_toolview;
 };

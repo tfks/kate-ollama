@@ -9,4 +9,4 @@ class Messages
 public:
     static void showStatusMessage(const QString &message, KTextEditor::Message::MessageType level, KTextEditor::MainWindow *mainWindow);
 };
-#endif
+#endif // MESSAGES_H

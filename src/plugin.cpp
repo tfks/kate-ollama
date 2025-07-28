@@ -8,7 +8,7 @@
 
 #include "ollamaview.h"
 #include "settings.h"
-#include "toolwindow.h"
+#include "toolwidget.h"
 
 // KF headers
 #include <KActionCollection>
@@ -62,7 +62,7 @@ KateOllamaPlugin::KateOllamaPlugin(QObject *parent, const QVariantList &)
 
 QObject *KateOllamaPlugin::createToolWindow(KTextEditor::MainWindow *mainWindow)
 {
-    return new OllamaToolWindow(mainWindow);
+    return new OllamaToolWidget(mainWindow);
 }
 
 QObject *KateOllamaPlugin::createView(KTextEditor::MainWindow *mainwindow)

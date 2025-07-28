@@ -41,10 +41,14 @@ set(PROJECT_SOURCES
     src/settings.cpp
     src/ollamadata.h
     src/ollamadata.cpp
+    src/ollamasystem.h
+    src/ollamasystem.cpp
     src/ollamaview.h
     src/ollamaview.cpp
-    src/toolwindow.h
-    src/toolwindow.cpp
+    src/toolwidget.h
+    src/toolwidget.cpp
+    src/maintab.h
+    src/maintab.cpp
     src/messages.h
     src/messages.cpp)
 

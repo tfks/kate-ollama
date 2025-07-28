@@ -78,15 +78,9 @@ KateOllamaView::KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow
     m_mainWindow->guiFactory()->addClient(this);
 
     auto toolview =
-        m_mainWindow->createToolView(plugin, "ollamatoolwindow", KTextEditor::MainWindow::Bottom, QIcon::fromTheme("applications-all"), i18n("Ollama"));
+        m_mainWindow->createToolView(plugin, "ollamatoolwidget", KTextEditor::MainWindow::Bottom, QIcon::fromTheme("applications-all"), i18n("Ollama"));
 
     m_toolview.reset(toolview);
-
-    // Create custom widget here.
-
-    // m_previewer = new QTextBrowser(m_toolview.get());
-    //  Add the widget to our toolview
-    // m_toolview->layout()->addWidget(m_previewer);
 }
 
 KateOllamaView::~KateOllamaView()
@@ -131,7 +125,7 @@ void KateOllamaView::ollamaRequest(QString prompt)
 
     // data.setFormat("");
     // data.setOptions("");
-    data.setSystem(m_plugin->getSystemPrompt());
+    data.setSystemPrompt(m_plugin->getSystemPrompt());
     // data.setContext("");
     // data.setStream("");
 

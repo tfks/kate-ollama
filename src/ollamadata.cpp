@@ -1,6 +1,7 @@
 #include "ollamadata.h"
 
 #include <QJsonArray>
+#include <qhashfunctions.h>
 
 OllamaData::OllamaData()
     : context_(false)
@@ -10,6 +11,15 @@ OllamaData::OllamaData()
 
 OllamaData::~OllamaData()
 {
+}
+
+void OllamaData::setOllamaUrl(QString url)
+{
+    url_ = url;
+}
+QString OllamaData::getOllamaUrl()
+{
+    return url_;
 }
 
 void OllamaData::setModel(const QString &model)
@@ -66,11 +76,11 @@ QString OllamaData::getOptions() const
     return options_;
 }
 
-void OllamaData::setSystem(const QString &system)
+void OllamaData::setSystemPrompt(const QString &system)
 {
     system_ = system;
 }
-QString OllamaData::getSystem() const
+QString OllamaData::getSystemPrompt() const
 {
     return system_;
 }
