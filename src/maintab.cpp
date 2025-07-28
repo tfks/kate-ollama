@@ -62,17 +62,17 @@ MainTab::MainTab(KTextEditor::MainWindow *mainWindow, OllamaToolWidget *parent)
 
     // ...
 
-    auto hl = new QHBoxLayout();
-    hl->addWidget(m_modelsComboBox);
-    hl->addWidget(m_textAreaOutput);
-    hl->addWidget(m_newTabBtn);
-    l->addLayout(hl);
+    // auto hl = new QVBoxLayout();
 
-    auto h2 = new QHBoxLayout();
-    h2->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
-    hl->addWidget(m_textAreaInput);
-    hl->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
-    l->addLayout(h2);
+    l->addWidget(m_newTabBtn);
+    l->addWidget(m_modelsComboBox);
+    l->addWidget(m_textAreaOutput, 1);
+
+    // l->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    l->addWidget(m_textAreaInput, 1);
+    // l->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+
+    // l->addLayout(hl);
 
     l->addStretch();
 

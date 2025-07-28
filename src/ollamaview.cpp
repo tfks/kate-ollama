@@ -8,6 +8,7 @@
 #include "plugin.h"
 
 #include "ollamadata.h"
+#include "src/toolwidget.h"
 
 // KF headers
 #include <KActionCollection>
@@ -42,6 +43,8 @@
 #include <QVBoxLayout>
 #include <QVector>
 #include <QWidget>
+
+#include "toolwidget.h"
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -79,6 +82,8 @@ KateOllamaView::KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow
 
     auto toolview =
         m_mainWindow->createToolView(plugin, "ollamatoolwidget", KTextEditor::MainWindow::Bottom, QIcon::fromTheme("applications-all"), i18n("Ollama"));
+
+    m_toolWidget = new OllamaToolWidget(m_mainWindow, toolview);
 
     m_toolview.reset(toolview);
 }

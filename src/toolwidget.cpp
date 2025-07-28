@@ -41,4 +41,6 @@ OllamaToolWidget::~OllamaToolWidget()
 
 void OllamaToolWidget::newTab()
 {
+    int i = m_tabWidget.addTab(new MainTab(m_mainWindow, this), QString::number(m_tabWidget.count() + 1));
+    m_tabWidget.setCurrentIndex(i);
 }
