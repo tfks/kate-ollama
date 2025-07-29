@@ -14,11 +14,14 @@
 #include <QJsonValue>
 #include <QKeyEvent>
 #include <QKeySequence>
+#include <QLocale>
 #include <QVBoxLayout>
 #include <qnamespace.h>
+#include <qsizepolicy.h>
 
 #include "maintab.h"
 #include "ollamadata.h"
+#include "ollamaglobals.h"
 #include "ollamasystem.h"
 #include "toolwidget.h"
 
@@ -38,7 +41,7 @@ MainTab::MainTab(KTextEditor::MainWindow *mainWindow, OllamaToolWidget *parent)
     connect(m_newTabBtn, &QAbstractButton::clicked, parent, &OllamaToolWidget::newTab);
 
     m_textAreaInput = new QPlainTextEdit(this);
-    m_textAreaInput->setPlaceholderText(i18n("Ask a question, press Enter to send.\n(Tip: use CTRL+Enter or SHIFT+Enter for adding a new line)"));
+    m_textAreaInput->setPlaceholderText(ki18n(OllamaGlobals::HelpText.toUtf8().data()).toString());
 
     auto ac = actionCollection();
 
@@ -62,10 +65,16 @@ MainTab::MainTab(KTextEditor::MainWindow *mainWindow, OllamaToolWidget *parent)
 
     // ...
 
-    // auto hl = new QVBoxLayout();
+    auto hl = new QHBoxLayout();
 
-    l->addWidget(m_newTabBtn);
-    l->addWidget(m_modelsComboBox);
+    hl->addWidget(m_modelsComboBox);
+    hl->addWidget(m_newTabBtn);
+
+    l->addLayout(hl);
+
+    m_modelsComboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_newTabBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
     l->addWidget(m_textAreaOutput, 1);
 
     // l->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));

@@ -44,6 +44,7 @@
 #include <QVector>
 #include <QWidget>
 
+#include "ollamaglobals.h"
 #include "toolwidget.h"
 
 using namespace Qt::Literals::StringLiterals;
@@ -80,8 +81,11 @@ KateOllamaView::KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow
 
     m_mainWindow->guiFactory()->addClient(this);
 
-    auto toolview =
-        m_mainWindow->createToolView(plugin, "ollamatoolwidget", KTextEditor::MainWindow::Bottom, QIcon::fromTheme("applications-all"), i18n("Ollama"));
+    auto toolview = m_mainWindow->createToolView(plugin,
+                                                 "ollamatoolwidget",
+                                                 KTextEditor::MainWindow::Bottom,
+                                                 QIcon::fromTheme(OllamaGlobals::IconName),
+                                                 OllamaGlobals::PluginName);
 
     m_toolWidget = new OllamaToolWidget(m_mainWindow, toolview);
 

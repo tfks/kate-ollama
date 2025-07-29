@@ -35,6 +35,8 @@ find_package(
 )
 
 set(PROJECT_SOURCES
+    src/ollamaglobals.h
+    src/ollamaglobals.cpp
     src/plugin.h
     src/plugin.cpp
     src/settings.h

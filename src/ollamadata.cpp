@@ -1,3 +1,8 @@
+/*
+ *  SPDX-FileCopyrightText: 2025 tfks <development@worloflinux.nl>
+ *
+ *  SPDX-License-Identifier: LGPL-2.0-or-later
+ */
 #include "ollamadata.h"
 
 #include <QJsonArray>

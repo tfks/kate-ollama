@@ -12,6 +12,8 @@
 
 class OllamaSystem : QObject
 {
+    Q_OBJECT
+
 public:
     OllamaSystem(QObject *parent);
     ~OllamaSystem();

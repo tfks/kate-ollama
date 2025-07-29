@@ -7,6 +7,7 @@
 #define MAINTAB_H
 
 // KF Headers
+#include <KLocalizedString>
 #include <KTextEditor/MainWindow>
 #include <KTextEditor/Message>
 #include <KXMLGUIClient>
