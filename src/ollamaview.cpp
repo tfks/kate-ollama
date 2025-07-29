@@ -8,6 +8,7 @@
 #include "plugin.h"
 
 #include "ollamadata.h"
+#include "src/ollamasystem.h"
 #include "src/toolwidget.h"
 
 // KF headers
@@ -49,10 +50,11 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-KateOllamaView::KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainwindow)
+KateOllamaView::KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainwindow, OllamaSystem *ollamaSystem)
     : KXMLGUIClient()
     , m_plugin(plugin)
     , m_mainWindow(mainwindow)
+    , m_ollamaSystem(ollamaSystem)
 {
     KXMLGUIClient::setComponentName(u"kateollama"_s, i18n("Kate-Ollama"));
     KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
@@ -87,7 +89,7 @@ KateOllamaView::KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow
                                                  QIcon::fromTheme(OllamaGlobals::IconName),
                                                  OllamaGlobals::PluginName);
 
-    m_toolWidget = new OllamaToolWidget(m_mainWindow, toolview);
+    m_toolWidget = new OllamaToolWidget(m_plugin, m_mainWindow, m_ollamaSystem, toolview);
 
     m_toolview.reset(toolview);
 }

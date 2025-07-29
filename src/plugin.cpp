@@ -8,6 +8,8 @@
 
 #include "ollamaview.h"
 #include "settings.h"
+#include "src/ollamadata.h"
+#include "src/ollamasystem.h"
 #include "toolwidget.h"
 
 // KF headers
@@ -44,6 +46,8 @@
 #include <QVector>
 #include <QWidget>
 
+#include "ollamasystem.h"
+
 using namespace Qt::Literals::StringLiterals;
 
 K_PLUGIN_FACTORY_WITH_JSON(KateOllamaFactory, "kateollama.json", registerPlugin<KateOllamaPlugin>();)
@@ -58,16 +62,17 @@ enum MessageType {
 KateOllamaPlugin::KateOllamaPlugin(QObject *parent, const QVariantList &)
     : KTextEditor::Plugin(parent)
 {
+    olamaSystem_ = new OllamaSystem(this);
 }
 
 QObject *KateOllamaPlugin::createToolWindow(KTextEditor::MainWindow *mainWindow)
 {
-    return new OllamaToolWidget(mainWindow);
+    return new OllamaToolWidget(this, mainWindow, olamaSystem_);
 }
 
 QObject *KateOllamaPlugin::createView(KTextEditor::MainWindow *mainwindow)
 {
-    return new KateOllamaView(this, mainwindow);
+    return new KateOllamaView(this, mainwindow, olamaSystem_);
 }
 
 KTextEditor::ConfigPage *KateOllamaPlugin::configPage(int number, QWidget *parent)
@@ -103,6 +108,15 @@ void KateOllamaPlugin::setOllamaUrl(QString ollamaUrl)
 QString KateOllamaPlugin::getOllamaUrl()
 {
     return ollamaUrl_;
+}
+
+void KateOllamaPlugin::setOllamaData(OllamaData ollamaData)
+{
+    ollamaData_ = ollamaData;
+}
+OllamaData KateOllamaPlugin::getOllamaData()
+{
+    return ollamaData_;
 }
 
 #include <plugin.moc>

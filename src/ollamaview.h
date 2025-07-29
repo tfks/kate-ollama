@@ -11,6 +11,7 @@
 #include <KXMLGUIClient>
 #include <QObject>
 
+#include "src/ollamasystem.h"
 #include "toolwidget.h"
 
 class KateOllamaPlugin;
@@ -19,7 +20,7 @@ class KateOllamaView : public QObject, public KXMLGUIClient
 {
     Q_OBJECT
 public:
-    explicit KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainwindow);
+    explicit KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainwindow, OllamaSystem *ollamaSystem);
     ~KateOllamaView();
 
     QObject *createToolWindow(KTextEditor::MainWindow *mainWindow);
@@ -35,8 +36,8 @@ private:
     KateOllamaPlugin *m_plugin = nullptr;
     KTextEditor::MainWindow *m_mainWindow = nullptr;
     OllamaToolWidget *m_toolWidget = nullptr;
-
     std::unique_ptr<QWidget> m_toolview;
+    OllamaSystem *m_ollamaSystem;
 };
 
 #endif // KATEOLLAMAVIEW_H

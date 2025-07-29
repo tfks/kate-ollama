@@ -14,10 +14,13 @@
 #include <QJsonValue>
 #include <QKeyEvent>
 #include <QKeySequence>
+#include <QLabel>
 #include <QLocale>
+#include <QObject>
+#include <QSizePolicy>
 #include <QVBoxLayout>
+#include <qlineedit.h>
 #include <qnamespace.h>
-#include <qsizepolicy.h>
 
 #include "maintab.h"
 #include "ollamadata.h"
@@ -25,12 +28,12 @@
 #include "ollamasystem.h"
 #include "toolwidget.h"
 
-MainTab::MainTab(KTextEditor::MainWindow *mainWindow, OllamaToolWidget *parent)
+MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, OllamaSystem *ollamaSystem, OllamaToolWidget *parent)
     : QWidget(parent)
     , m_mainWindow(mainWindow)
+    , m_plugin(plugin)
+    , m_ollamaSystem(ollamaSystem)
 {
-    m_ollamaSystem = new OllamaSystem(this);
-
     auto l = new QVBoxLayout(this);
 
     m_modelsComboBox = new QComboBox(this);
@@ -42,6 +45,9 @@ MainTab::MainTab(KTextEditor::MainWindow *mainWindow, OllamaToolWidget *parent)
 
     m_textAreaInput = new QPlainTextEdit(this);
     m_textAreaInput->setPlaceholderText(ki18n(OllamaGlobals::HelpText.toUtf8().data()).toString());
+
+    m_label_override_ollama_endpoint = new QLabel(ki18n(OllamaGlobals::LabelOllamaEndpointOverride.toUtf8().data()).toString(), this);
+    m_line_edit_override_ollama_endpoint = new QLineEdit(m_plugin->getOllamaUrl(), this);
 
     auto ac = actionCollection();
 
@@ -63,8 +69,6 @@ MainTab::MainTab(KTextEditor::MainWindow *mainWindow, OllamaToolWidget *parent)
     KActionCollection::setDefaultShortcut(a2, QKeySequence((Qt::SHIFT | Qt::Key_Enter)));
     connect(a3, &QAction::triggered, this, &MainTab::onFullPrompt);
 
-    // ...
-
     auto hl = new QHBoxLayout();
 
     hl->addWidget(m_modelsComboBox);
@@ -72,18 +76,27 @@ MainTab::MainTab(KTextEditor::MainWindow *mainWindow, OllamaToolWidget *parent)
 
     l->addLayout(hl);
 
+    auto h2 = new QHBoxLayout();
+
+    h2->addWidget(m_label_override_ollama_endpoint);
+    h2->addWidget(m_line_edit_override_ollama_endpoint);
+    h2->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+
     m_modelsComboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     m_newTabBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_label_override_ollama_endpoint->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_line_edit_override_ollama_endpoint->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_line_edit_override_ollama_endpoint->setFixedWidth(200);
 
     l->addWidget(m_textAreaOutput, 1);
 
-    // l->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
     l->addWidget(m_textAreaInput, 1);
-    // l->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
-    // l->addLayout(hl);
+    l->addLayout(h2);
 
     l->addStretch();
+
+    connect(m_ollamaSystem, &OllamaSystem::signal_modelsListLoaded, this, &MainTab::handleSignalModelsListLoaded);
 
     loadModels();
 }
@@ -92,12 +105,10 @@ MainTab::~MainTab()
 {
 }
 
-void MainTab::loadModels()
+void MainTab::handleSignalModelsListLoaded(const QList<QJsonValue> &modelsList)
 {
-    QList<QJsonValue> models = m_ollamaSystem->fetchModels();
-
     int modelSelected = -1;
-    for (const QJsonValue &modelValue : models) {
+    for (const QJsonValue &modelValue : modelsList) {
         QJsonObject modelObj = modelValue.toObject();
         if (modelObj.contains("name")) {
             m_modelsComboBox->addItem(modelObj["name"].toString());
@@ -111,6 +122,11 @@ void MainTab::loadModels()
     if (modelSelected != -1) {
         m_modelsComboBox->setCurrentIndex(modelSelected - 1);
     }
+}
+
+void MainTab::loadModels()
+{
+    m_ollamaSystem->fetchModels(m_plugin->getOllamaUrl());
 }
 
 void MainTab::onFullPrompt()

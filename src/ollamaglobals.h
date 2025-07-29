@@ -19,6 +19,8 @@ public:
     static QString IconName;
 
     static QString HelpText;
+
+    static QString LabelOllamaEndpointOverride;
 };
 
 #endif // OLLAMAGLOBALS_H

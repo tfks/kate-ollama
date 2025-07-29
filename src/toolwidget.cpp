@@ -18,15 +18,17 @@
 #include "ollamaglobals.h"
 #include "toolwidget.h"
 
-OllamaToolWidget::OllamaToolWidget(KTextEditor::MainWindow *mainWindow, QWidget *parent)
+OllamaToolWidget::OllamaToolWidget(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, OllamaSystem *ollamaSystem, QWidget *parent)
     : QWidget(parent)
+    , m_plugin(plugin)
     , m_mainWindow(mainWindow)
+    , m_ollamaSystem(ollamaSystem)
 {
     new QVBoxLayout(this);
     layout()->setContentsMargins({});
     layout()->addWidget(&m_tabWidget);
 
-    m_tabWidget.addTab(new MainTab(mainWindow, this), OllamaGlobals::PluginName);
+    m_tabWidget.addTab(new MainTab(m_plugin, mainWindow, m_ollamaSystem, this), OllamaGlobals::PluginName);
     m_tabWidget.setTabsClosable(true);
 
     connect(&m_tabWidget, &QTabWidget::tabCloseRequested, this, [this](int idx) {
@@ -47,7 +49,7 @@ void OllamaToolWidget::newTab()
 
     QString tabName = QString(OllamaGlobals::PluginName).append(" (").append(QString::number(index)).append(")");
 
-    int i = m_tabWidget.addTab(new MainTab(m_mainWindow, this), tabName);
+    int i = m_tabWidget.addTab(new MainTab(m_plugin, m_mainWindow, m_ollamaSystem, this), tabName);
 
     m_tabWidget.setCurrentIndex(i);
 }

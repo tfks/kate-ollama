@@ -12,7 +12,8 @@
 #include <QTabWidget>
 #include <QTextBrowser>
 
-// #include "plugin.h"
+#include "plugin.h"
+#include "src/ollamasystem.h"
 
 class OllamaToolWidget : public QWidget
 {
@@ -20,7 +21,7 @@ class OllamaToolWidget : public QWidget
 
 public:
     // Constructor
-    explicit OllamaToolWidget(KTextEditor::MainWindow *mainWindow, QWidget *parent = nullptr);
+    explicit OllamaToolWidget(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, OllamaSystem *ollamaSystem, QWidget *parent = nullptr);
 
     // Destructor
     virtual ~OllamaToolWidget();
@@ -31,7 +32,9 @@ public:
     void onViewChanged(KTextEditor::View *v);
 
 private:
+    KateOllamaPlugin *m_plugin;
     KTextEditor::MainWindow *m_mainWindow = nullptr;
     QTabWidget m_tabWidget;
+    OllamaSystem *m_ollamaSystem;
 };
 #endif // OLLAMATOOLWIDGET_HEADER_H

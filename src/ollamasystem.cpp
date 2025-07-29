@@ -7,12 +7,14 @@
 // KF Headers
 #include <KLocalizedString>
 
+#include <QDebug>
 #include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QObject>
 #include <QStringLiteral>
 
-#include "messages.h"
+// #include "messages.h"
 #include "ollamadata.h"
 #include "ollamasystem.h"
 
@@ -25,20 +27,25 @@ OllamaSystem::~OllamaSystem()
 {
 }
 
-QList<QJsonValue> OllamaSystem::fetchModels()
+void OllamaSystem::fetchModels(QString olamaUrl)
 {
+    qDebug() << "ollamasystem is fetching models";
     QNetworkAccessManager *manager = new QNetworkAccessManager(parent);
     connect(manager, &QNetworkAccessManager::finished, this, [this](QNetworkReply *reply) {
         if (reply->error() == QNetworkReply::NoError) {
+            qDebug() << "ollamasystem got a reply from fetching models";
             QByteArray responseData = reply->readAll();
             QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
 
             if (jsonDoc.isObject()) {
+                qDebug() << "ollamasystem has a json object with models";
                 QJsonObject jsonObj = jsonDoc.object();
                 if (jsonObj.contains("models") && jsonObj["models"].isArray()) {
+                    qDebug() << "ollamasystem identified models";
                     QJsonArray modelsArray = jsonObj["models"].toArray();
 
                     for (const QJsonValue &value : modelsArray) {
+                        qDebug() << "ollamasystem appending model";
                         m_modelsList.append(value);
                     }
                     std::sort(m_modelsList.begin(), m_modelsList.end(), [](const QJsonValue &a, const QJsonValue &b) {
@@ -46,14 +53,22 @@ QList<QJsonValue> OllamaSystem::fetchModels()
                     });
                 }
             }
+
+            qDebug() << "ollamasystem is emitting signal that it fetched models";
+            emit signal_modelsListLoaded(m_modelsList);
+
         } else {
             qWarning() << "Error fetching model list:" << reply->errorString();
             m_errors.append(i18n("Error fetching model list: %1", reply->errorString()));
+
+            emit signal_errorFetchingModelsList(QString("Error fetching model list:").append(reply->errorString()));
         }
         reply->deleteLater();
     });
 
-    return m_modelsList;
+    QUrl url(olamaUrl + "/api/tags");
+    QNetworkRequest request(url);
+    manager->get(request);
 }
 
 void OllamaSystem::ollamaRequest(OllamaData data)

@@ -7,10 +7,11 @@
 #define OLLAMASYSTEM_H
 
 #include <QJsonArray>
+#include <QObject>
 
 #include "src/ollamadata.h"
 
-class OllamaSystem : QObject
+class OllamaSystem : public QObject
 {
     Q_OBJECT
 
@@ -18,8 +19,12 @@ public:
     OllamaSystem(QObject *parent);
     ~OllamaSystem();
 
-    QList<QJsonValue> fetchModels();
+    void fetchModels(QString olamaUrl);
     void ollamaRequest(OllamaData data);
+
+signals:
+    void signal_modelsListLoaded(const QList<QJsonValue> &modelsList);
+    void signal_errorFetchingModelsList(QString error);
 
 private:
     QObject *parent = nullptr;
