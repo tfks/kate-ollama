@@ -1,0 +1,2 @@
+
+#include "qollamaplaintextedit.h"

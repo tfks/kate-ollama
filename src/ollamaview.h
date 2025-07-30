@@ -26,11 +26,17 @@ public:
     QObject *createToolWindow(KTextEditor::MainWindow *mainWindow);
 
 private slots:
-    void onSinglePrompt();
-    void onFullPrompt();
-    void ollamaRequest(QString prompt);
-    void printCommand();
+    void handle_onSinglePrompt();
+    void handle_onFullPrompt();
+    void handle_onPrintCommand();
+
+    void handle_ollamaRequestMetaDataChanged();
+    void handle_ollamaRequestGotResponse(QString responseText);
+    void handle_ollamaRequestFinished(QString errorMessage);
+
+private:
     QString getPrompt();
+    void ollamaRequest(QString prompt);
 
 private:
     KateOllamaPlugin *m_plugin = nullptr;

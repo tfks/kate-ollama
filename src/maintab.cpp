@@ -17,15 +17,18 @@
 #include <QLabel>
 #include <QLocale>
 #include <QObject>
+#include <QPlainTextEdit>
 #include <QSizePolicy>
 #include <QVBoxLayout>
 #include <qlineedit.h>
 #include <qnamespace.h>
 
 #include "maintab.h"
+#include "messages.h"
 #include "ollamadata.h"
 #include "ollamaglobals.h"
 #include "ollamasystem.h"
+#include "src/ui/qollamaplaintextedit.h"
 #include "toolwidget.h"
 
 MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, OllamaSystem *ollamaSystem, OllamaToolWidget *parent)
@@ -37,14 +40,13 @@ MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, 
     auto l = new QVBoxLayout(this);
 
     m_modelsComboBox = new QComboBox(this);
-    m_textAreaOutput = new QPlainTextEdit(this);
     m_newTabBtn = new QPushButton(QIcon::fromTheme(QStringLiteral("tab-new")), QString());
     m_newTabBtn->setToolTip(i18n("Add new tab"));
 
-    connect(m_newTabBtn, &QAbstractButton::clicked, parent, &OllamaToolWidget::newTab);
-
-    m_textAreaInput = new QPlainTextEdit(this);
+    m_textAreaInput = new QOllamaPlainTextEdit(this);
     m_textAreaInput->setPlaceholderText(ki18n(OllamaGlobals::HelpText.toUtf8().data()).toString());
+
+    m_textAreaOutput = new QOllamaPlainTextEdit(this);
 
     m_label_override_ollama_endpoint = new QLabel(ki18n(OllamaGlobals::LabelOllamaEndpointOverride.toUtf8().data()).toString(), this);
     m_line_edit_override_ollama_endpoint = new QLineEdit(m_plugin->getOllamaUrl(), this);
@@ -55,19 +57,16 @@ MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, 
     a->setText(i18n("ask-question"));
     a->setIcon(QIcon::fromTheme(QStringLiteral("debug-run")));
     KActionCollection::setDefaultShortcut(a, QKeySequence(Qt::Key_Enter));
-    // connect(a, &QAction::triggered, this, &MainTab::onSinglePrompt); // Need to get the last line in m_textAreaInput
 
     QAction *a2 = ac->addAction(QStringLiteral("kateollama-newline"));
     a2->setText(i18n("New line"));
     a2->setIcon(QIcon::fromTheme(QStringLiteral("debug-run")));
     KActionCollection::setDefaultShortcut(a2, QKeySequence((Qt::CTRL | Qt::Key_Enter)));
-    connect(a2, &QAction::triggered, this, &MainTab::onFullPrompt);
 
     QAction *a3 = ac->addAction(QStringLiteral("kateollama-newline-alt"));
     a3->setText(i18n("New line"));
     a3->setIcon(QIcon::fromTheme(QStringLiteral("debug-run")));
     KActionCollection::setDefaultShortcut(a2, QKeySequence((Qt::SHIFT | Qt::Key_Enter)));
-    connect(a3, &QAction::triggered, this, &MainTab::onFullPrompt);
 
     auto hl = new QHBoxLayout();
 
@@ -89,14 +88,34 @@ MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, 
     m_line_edit_override_ollama_endpoint->setFixedWidth(200);
 
     l->addWidget(m_textAreaOutput, 1);
-
     l->addWidget(m_textAreaInput, 1);
 
     l->addLayout(h2);
 
     l->addStretch();
 
-    connect(m_ollamaSystem, &OllamaSystem::signal_modelsListLoaded, this, &MainTab::handleSignalModelsListLoaded);
+    connect(m_newTabBtn, &QAbstractButton::clicked, parent, &OllamaToolWidget::newTab);
+
+    connect(a, &QAction::triggered, this, &MainTab::handle_signalOnSinglePrompt); // Need to get the last line in m_textAreaInput
+
+    connect(a2, &QAction::triggered, this, &MainTab::handle_signalOnFullPrompt);
+
+    connect(a3, &QAction::triggered, this, &MainTab::handle_signalOnFullPrompt);
+
+    connect(m_ollamaSystem, &OllamaSystem::signal_modelsListLoaded, this, &MainTab::handle_signalModelsListLoaded);
+
+    connect(m_ollamaSystem, &OllamaSystem::signal_ollamaRequestMetaDataChanged, this, &MainTab::handle_signalOllamaRequestMetaDataChanged);
+
+    connect(m_ollamaSystem, &OllamaSystem::signal_ollamaRequestGotResponse, this, &MainTab::handle_signalOllamaRequestGotResponse);
+
+    connect(m_ollamaSystem, &OllamaSystem::signal_ollamaRequestFinished, this, &MainTab::handle_signalOllamaRequestFinished);
+
+    connect(m_textAreaInput,
+            &QOllamaPlainTextEdit::signal_enterKeyWasPressed,
+            this,
+            &MainTab::handle_signal_textAreaInputEnterKeyWasPressed); // Also need to capture control enter for the full prompt.
+
+    connect(m_textAreaOutput, &QPlainTextEdit::textChanged, m_textAreaOutput, &QOllamaPlainTextEdit::onTextChanged);
 
     loadModels();
 }
@@ -105,7 +124,7 @@ MainTab::~MainTab()
 {
 }
 
-void MainTab::handleSignalModelsListLoaded(const QList<QJsonValue> &modelsList)
+void MainTab::handle_signalModelsListLoaded(const QList<QJsonValue> &modelsList)
 {
     int modelSelected = -1;
     for (const QJsonValue &modelValue : modelsList) {
@@ -124,19 +143,92 @@ void MainTab::handleSignalModelsListLoaded(const QList<QJsonValue> &modelsList)
     }
 }
 
-void MainTab::loadModels()
+void MainTab::handle_signalOnSinglePrompt()
 {
-    m_ollamaSystem->fetchModels(m_plugin->getOllamaUrl());
+    KTextEditor::View *view = m_mainWindow->activeView();
+    if (view) {
+        QString prompt = getPrompt();
+        if (!prompt.isEmpty()) {
+            Messages::showStatusMessage(QStringLiteral("Info: Single prompt.."), KTextEditor::Message::Information, m_mainWindow);
+            ollamaRequest(prompt);
+        } else {
+            Messages::showStatusMessage(QStringLiteral("Info: No single prompt..."), KTextEditor::Message::Information, m_mainWindow);
+        }
+    } else {
+        Messages::showStatusMessage(QStringLiteral("Info: Single prompt, no view..."), KTextEditor::Message::Information, m_mainWindow);
+    }
 }
 
-void MainTab::onFullPrompt()
+void MainTab::handle_signalOnFullPrompt()
 {
     QString prompt = m_textAreaInput->document()->toPlainText();
+    ollamaRequest(prompt);
+}
 
+void MainTab::handle_signalOllamaRequestMetaDataChanged()
+{
+    QTextCursor cursor = m_textAreaInput->textCursor();
+    cursor.insertText("\n");
+
+    Messages::showStatusMessage(QStringLiteral("Info: Request started..."), KTextEditor::Message::Information, m_mainWindow);
+}
+
+void MainTab::handle_signalOllamaRequestGotResponse(QString responseText)
+{
+    QTextCursor cursor = m_textAreaOutput->textCursor();
+    cursor.insertText(responseText);
+
+    Messages::showStatusMessage(QStringLiteral("Info: Reply received..."), KTextEditor::Message::Information, m_mainWindow);
+}
+
+void MainTab::handle_signalOllamaRequestFinished(QString errorMessage)
+{
+    if (errorMessage != QString("")) {
+        Messages::showStatusMessage(QStringLiteral("Error encountered: ").arg(errorMessage), KTextEditor::Message::Information, m_mainWindow);
+        qDebug() << "Error:" << errorMessage;
+        qDebug() << "Model:" << m_plugin->getModel();
+        qDebug() << "System prompt:" << m_plugin->getSystemPrompt();
+    }
+    QTextCursor cursor = m_textAreaOutput->textCursor();
+    cursor.insertText("\n\n");
+}
+
+void MainTab::handle_signal_textAreaInputEnterKeyWasPressed(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return) {
+        // Handle the Enter or Return key press here
+        qDebug() << "Enter/Return key pressed in CustomWidget";
+
+        QString prompt = m_textAreaInput->toPlainText();
+        ollamaRequest(prompt);
+    }
+}
+
+void MainTab::loadModels()
+{
+    OllamaData ollamaData;
+
+    ollamaData.setOllamaUrl(m_plugin->getOllamaUrl());
+
+    m_ollamaSystem->fetchModels(ollamaData);
+}
+
+QString MainTab::getPrompt()
+{
+    Messages::showStatusMessage(QStringLiteral("Info: Getting prompt..."), KTextEditor::Message::Information, m_mainWindow);
+
+    QString text = m_textAreaInput->toPlainText();
+
+    return m_ollamaSystem->getPromptFromText(text);
+}
+
+void MainTab::ollamaRequest(QString prompt)
+{
     OllamaData data;
 
     QVector<QString> images;
 
+    data.setOllamaUrl(m_plugin->getOllamaUrl());
     data.setModel(m_plugin->getModel());
     data.setPrompt(prompt);
     data.setSuffix("");

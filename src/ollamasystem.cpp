@@ -27,9 +27,10 @@ OllamaSystem::~OllamaSystem()
 {
 }
 
-void OllamaSystem::fetchModels(QString olamaUrl)
+void OllamaSystem::fetchModels(OllamaData ollamaData)
 {
     qDebug() << "ollamasystem is fetching models";
+
     QNetworkAccessManager *manager = new QNetworkAccessManager(parent);
     connect(manager, &QNetworkAccessManager::finished, this, [this](QNetworkReply *reply) {
         if (reply->error() == QNetworkReply::NoError) {
@@ -66,27 +67,27 @@ void OllamaSystem::fetchModels(QString olamaUrl)
         reply->deleteLater();
     });
 
-    QUrl url(olamaUrl + "/api/tags");
+    QUrl url(ollamaData.getOllamaUrl() + "/api/tags");
     QNetworkRequest request(url);
     manager->get(request);
 }
 
-void OllamaSystem::ollamaRequest(OllamaData data)
+void OllamaSystem::ollamaRequest(OllamaData ollamaData)
 {
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
 
-    QNetworkRequest request(QUrl(data.getOllamaUrl() + "/api/generate"));
+    QNetworkRequest request(QUrl(ollamaData.getOllamaUrl() + "/api/generate"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     QJsonObject json_data;
-    json_data = data.toJson();
+    json_data = ollamaData.toJson();
 
     QJsonDocument doc(json_data);
 
     QNetworkReply *reply = manager->post(request, doc.toJson());
 
     connect(reply, &QNetworkReply::metaDataChanged, this, [=, this]() {
-        // Need to emit a signal metaDataChanged with a message that the info request was started.
+        emit signal_ollamaRequestMetaDataChanged();
     });
 
     connect(reply, &QNetworkReply::readyRead, this, [this, reply]() {
@@ -97,18 +98,34 @@ void OllamaSystem::ollamaRequest(OllamaData data)
         if (jsonObj.contains("response")) {
             QString responseText = jsonObj["response"].toString();
 
-            // Need to emit a signal that the data was recieved with responseText as data.
+            emit signal_ollamaRequestGotResponse(responseText);
         }
     });
 
     connect(reply, &QNetworkReply::finished, this, [=, this]() {
         if (reply->error() != QNetworkReply::NoError) {
             qDebug() << "Error:" << reply->errorString();
-            qDebug() << "Model:" << data.getModel();
-            qDebug() << "System prompt:" << data.getSystemPrompt();
-
-            // Need to emit a signal that something went wrong with the errorString as data.
+            qDebug() << "Model:" << ollamaData.getModel();
+            qDebug() << "System prompt:" << ollamaData.getSystemPrompt();
         }
+
+        emit signal_ollamaRequestFinished(reply->errorString());
         reply->deleteLater();
     });
+}
+
+QString OllamaSystem::getPromptFromText(QString text)
+{
+    QRegularExpression re("// AI:(.*)");
+    QRegularExpressionMatchIterator matchIterator = re.globalMatch(text);
+
+    QString lastMatch;
+
+    while (matchIterator.hasNext()) {
+        QRegularExpressionMatch match = matchIterator.next();
+        lastMatch = match.captured(1).trimmed();
+    }
+    qDebug() << "Ollama prompt:" << lastMatch;
+
+    return lastMatch;
 }

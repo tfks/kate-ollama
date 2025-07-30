@@ -20,9 +20,11 @@
 #include <QPushButton>
 #include <QSpacerItem>
 #include <QWidget>
+#include <qevent.h>
 
 #include "ollamasystem.h"
 #include "plugin.h"
+#include "src/ui/qollamaplaintextedit.h"
 #include "toolwidget.h"
 
 class MainTab : public QWidget, public KXMLGUIClient
@@ -34,18 +36,26 @@ public:
     ~MainTab();
 
 public slots:
-    void handleSignalModelsListLoaded(const QList<QJsonValue> &modelsList);
+    void handle_signalModelsListLoaded(const QList<QJsonValue> &modelsList);
+    void handle_signalOnSinglePrompt();
+    void handle_signalOnFullPrompt();
+    void handle_signalOllamaRequestMetaDataChanged();
+    void handle_signalOllamaRequestGotResponse(QString responseText);
+    void handle_signalOllamaRequestFinished(QString errorMessage);
+
+    void handle_signal_textAreaInputEnterKeyWasPressed(QKeyEvent *event);
 
 private:
     void loadModels();
-    void onFullPrompt();
+    QString getPrompt();
+    void ollamaRequest(QString prompt);
 
     KTextEditor::MainWindow *m_mainWindow = nullptr;
 
     QComboBox *m_modelsComboBox;
     QPushButton *m_newTabBtn;
-    QPlainTextEdit *m_textAreaOutput;
-    QPlainTextEdit *m_textAreaInput;
+    QOllamaPlainTextEdit *m_textAreaInput;
+    QOllamaPlainTextEdit *m_textAreaOutput;
     QLabel *m_label_override_ollama_endpoint;
     QLineEdit *m_line_edit_override_ollama_endpoint;
 

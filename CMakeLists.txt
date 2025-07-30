@@ -35,6 +35,8 @@ find_package(
 )
 
 set(PROJECT_SOURCES
+    src/ui/qollamaplaintextedit.h
+    src/ui/qollamaplaintextedit.cpp
     src/ollamaglobals.h
     src/ollamaglobals.cpp
     src/plugin.h
