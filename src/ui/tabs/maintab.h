@@ -19,6 +19,7 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QSpacerItem>
+#include <QSplitter>
 #include <QWidget>
 #include <qevent.h>
 
@@ -46,22 +47,27 @@ public slots:
     void handle_signalOllamaRequestFinished(OllamaResponse ollamaResponse);
 
     void handle_signal_textAreaInputEnterKeyWasPressed(QKeyEvent *event);
+    void handle_signalOutputInEditorClicked();
 
 private:
     void loadModels();
     QString getPrompt();
     void ollamaRequest(QString prompt);
 
-    KTextEditor::MainWindow *m_mainWindow = nullptr;
+    bool outputInEditor_;
 
-    QComboBox *m_modelsComboBox;
-    QPushButton *m_newTabBtn;
-    QOllamaPlainTextEdit *m_textAreaInput;
-    QOllamaPlainTextEdit *m_textAreaOutput;
-    QLabel *m_label_override_ollama_endpoint;
-    QLineEdit *m_line_edit_override_ollama_endpoint;
+    KTextEditor::MainWindow *mainWindow_ = nullptr;
 
-    KateOllamaPlugin *m_plugin;
-    OllamaSystem *m_ollamaSystem;
+    QComboBox *modelsComboBox_;
+    QPushButton *outputInEditorPushButton_;
+    QPushButton *newTabBtn_;
+    QOllamaPlainTextEdit *textAreaInput_;
+    QOllamaPlainTextEdit *textAreaOutput_;
+    QSplitter *splitter_;
+    QLabel *label_override_ollama_endpoint_;
+    QLineEdit *line_edit_override_ollama_endpoint_;
+
+    KateOllamaPlugin *plugin_;
+    OllamaSystem *ollamaSystem_;
 };
 #endif // MAINTAB_H
