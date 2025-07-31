@@ -23,10 +23,15 @@ public:
     // Default destructor
     ~OllamaData();
 
+    // Sets the sender from which the call originated. Can be used to determine what to do with the response in the UI.
+    void setSender(QString sender);
+    // Gets the sender from which the call originated. Can be used to determine what to do with the response in the UI.
+    QString getSender() const;
+
     // (required) Sets the Ollama URL
     void setOllamaUrl(QString url);
     // (required) Gets the Ollama URL
-    QString getOllamaUrl();
+    QString getOllamaUrl() const;
 
     // (required) Sets the model name
     void setModel(const QString &model);
@@ -95,6 +100,7 @@ public:
     QJsonObject toJson() const;
 
 private:
+    QString sender_;
     QString url_;
     QString model_;
     QString prompt_;

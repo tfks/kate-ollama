@@ -22,10 +22,11 @@
 #include <QWidget>
 #include <qevent.h>
 
-#include "ollamasystem.h"
-#include "plugin.h"
-#include "src/ui/qollamaplaintextedit.h"
-#include "toolwidget.h"
+#include "src/ollama/ollamaresponse.h"
+#include "src/ollama/ollamasystem.h"
+#include "src/plugin.h"
+#include "src/ui/controls//qollamaplaintextedit.h"
+#include "src/ui/widgets/toolwidget.h"
 
 class MainTab : public QWidget, public KXMLGUIClient
 {
@@ -39,9 +40,10 @@ public slots:
     void handle_signalModelsListLoaded(const QList<QJsonValue> &modelsList);
     void handle_signalOnSinglePrompt();
     void handle_signalOnFullPrompt();
-    void handle_signalOllamaRequestMetaDataChanged();
-    void handle_signalOllamaRequestGotResponse(QString responseText);
-    void handle_signalOllamaRequestFinished(QString errorMessage);
+
+    void handle_signalOllamaRequestMetaDataChanged(OllamaResponse ollamaResponse);
+    void handle_signalOllamaRequestGotResponse(OllamaResponse ollamaResponse);
+    void handle_signalOllamaRequestFinished(OllamaResponse ollamaResponse);
 
     void handle_signal_textAreaInputEnterKeyWasPressed(QKeyEvent *event);
 

@@ -14,9 +14,9 @@
 #include <QObject>
 #include <QStringLiteral>
 
-// #include "messages.h"
-#include "ollamadata.h"
-#include "ollamasystem.h"
+#include "src/ollama/ollamadata.h"
+#include "src/ollama/ollamaresponse.h"
+#include "src/ollama/ollamasystem.h"
 
 OllamaSystem::OllamaSystem(QObject *parent)
     : parent(parent)
@@ -74,42 +74,59 @@ void OllamaSystem::fetchModels(OllamaData ollamaData)
 
 void OllamaSystem::ollamaRequest(OllamaData ollamaData)
 {
-    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-
-    QNetworkRequest request(QUrl(ollamaData.getOllamaUrl() + "/api/generate"));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    QString sender = ollamaData.getSender();
 
     QJsonObject json_data;
     json_data = ollamaData.toJson();
 
     QJsonDocument doc(json_data);
 
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+
+    QNetworkRequest request(QUrl(ollamaData.getOllamaUrl() + "/api/generate"));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
     QNetworkReply *reply = manager->post(request, doc.toJson());
 
     connect(reply, &QNetworkReply::metaDataChanged, this, [=, this]() {
-        emit signal_ollamaRequestMetaDataChanged();
+        OllamaResponse ollamaResponse;
+
+        ollamaResponse.setReceiver(sender);
+
+        emit signal_ollamaRequestMetaDataChanged(ollamaResponse);
     });
 
-    connect(reply, &QNetworkReply::readyRead, this, [this, reply]() {
+    connect(reply, &QNetworkReply::readyRead, this, [this, reply, sender]() {
         QString responseChunk = reply->readAll();
         QJsonDocument jsonDoc = QJsonDocument::fromJson(responseChunk.toUtf8());
         QJsonObject jsonObj = jsonDoc.object();
 
         if (jsonObj.contains("response")) {
-            QString responseText = jsonObj["response"].toString();
+            OllamaResponse ollamaResponse;
 
-            emit signal_ollamaRequestGotResponse(responseText);
+            ollamaResponse.setReceiver(sender);
+            ollamaResponse.setResponseText(jsonObj["response"].toString());
+
+            emit signal_ollamaRequestGotResponse(ollamaResponse);
         }
     });
 
     connect(reply, &QNetworkReply::finished, this, [=, this]() {
+        OllamaResponse ollamaResponse;
+
         if (reply->error() != QNetworkReply::NoError) {
+            ollamaResponse.setErrorMessage(reply->errorString());
+
             qDebug() << "Error:" << reply->errorString();
             qDebug() << "Model:" << ollamaData.getModel();
             qDebug() << "System prompt:" << ollamaData.getSystemPrompt();
         }
 
-        emit signal_ollamaRequestFinished(reply->errorString());
+        QString sender = ollamaData.getSender();
+
+        ollamaResponse.setReceiver(sender);
+
+        emit signal_ollamaRequestFinished(ollamaResponse);
         reply->deleteLater();
     });
 }

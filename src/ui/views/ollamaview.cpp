@@ -3,13 +3,6 @@
  *
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
-#include "ollamaview.h"
-#include "messages.h"
-#include "plugin.h"
-
-#include "ollamadata.h"
-#include "src/ollamasystem.h"
-#include "src/toolwidget.h"
 
 // KF headers
 #include <KActionCollection>
@@ -45,8 +38,14 @@
 #include <QVector>
 #include <QWidget>
 
-#include "ollamaglobals.h"
-#include "toolwidget.h"
+#include "src/ollama//ollamasystem.h"
+#include "src/ollama/ollamadata.h"
+#include "src/ollama/ollamaglobals.h"
+#include "src/ollama/ollamaresponse.h"
+#include "src/plugin.h"
+#include "src/ui/utilities/messages.h"
+#include "src/ui/views/ollamaview.h"
+#include "src/ui/widgets/toolwidget.h"
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -152,37 +151,46 @@ void KateOllamaView::handle_onPrintCommand()
     }
 }
 
-void KateOllamaView::handle_ollamaRequestMetaDataChanged()
+void KateOllamaView::handle_ollamaRequestMetaDataChanged(OllamaResponse ollamaResponse)
 {
-    KTextEditor::View *view = m_mainWindow->activeView();
-    KTextEditor::Document *document = view->document();
-    KTextEditor::Cursor cursor = view->cursorPosition();
-    document->insertText(cursor, "\n");
-    Messages::showStatusMessage(QStringLiteral("Info: Request started..."), KTextEditor::Message::Information, m_mainWindow);
+    if (ollamaResponse.getReceiver() == "editor" || ollamaResponse.getReceiver() == "") {
+        KTextEditor::View *view = m_mainWindow->activeView();
+        KTextEditor::Document *document = view->document();
+        KTextEditor::Cursor cursor = view->cursorPosition();
+        document->insertText(cursor, "\n");
+        Messages::showStatusMessage(QStringLiteral("Info: Request started..."), KTextEditor::Message::Information, m_mainWindow);
+    }
 }
 
-void KateOllamaView::handle_ollamaRequestGotResponse(QString responseText)
+void KateOllamaView::handle_ollamaRequestGotResponse(OllamaResponse ollamaResponse)
 {
+    if (ollamaResponse.getReceiver() != "editor" && ollamaResponse.getReceiver() != "")
+        return;
+
     KTextEditor::View *view = m_mainWindow->activeView();
     KTextEditor::Document *document = view->document();
     KTextEditor::Cursor cursor = view->cursorPosition();
-    document->insertText(cursor, responseText);
+    document->insertText(cursor, ollamaResponse.getResponseText());
     Messages::showStatusMessage(QStringLiteral("Info: Reply received..."), KTextEditor::Message::Information, m_mainWindow);
 }
 
-void KateOllamaView::handle_ollamaRequestFinished(QString errorMessage)
+void KateOllamaView::handle_ollamaRequestFinished(OllamaResponse ollamaResponse)
 {
-    if (errorMessage != QString("")) {
-        Messages::showStatusMessage(QStringLiteral("Error encountered: ").arg(errorMessage), KTextEditor::Message::Information, m_mainWindow);
-        qDebug() << "Error:" << errorMessage;
+    if (ollamaResponse.getErrorMessage() != QString("")) {
+        Messages::showStatusMessage(QStringLiteral("Error encountered: ").arg(ollamaResponse.getErrorMessage()),
+                                    KTextEditor::Message::Information,
+                                    m_mainWindow);
+        qDebug() << "Error:" << ollamaResponse.getErrorMessage();
         qDebug() << "Model:" << m_plugin->getModel();
         qDebug() << "System prompt:" << m_plugin->getSystemPrompt();
     }
 
-    KTextEditor::View *view = m_mainWindow->activeView();
-    KTextEditor::Document *document = view->document();
-    KTextEditor::Cursor cursor = view->cursorPosition();
-    document->insertText(cursor, "\n");
+    if (ollamaResponse.getReceiver() == "editor" || ollamaResponse.getReceiver() == "") {
+        KTextEditor::View *view = m_mainWindow->activeView();
+        KTextEditor::Document *document = view->document();
+        KTextEditor::Cursor cursor = view->cursorPosition();
+        document->insertText(cursor, "\n");
+    }
 }
 
 QString KateOllamaView::getPrompt()
@@ -205,6 +213,7 @@ void KateOllamaView::ollamaRequest(QString prompt)
     OllamaData data;
     QVector<QString> images;
 
+    data.setSender("editor");
     data.setOllamaUrl(m_plugin->getOllamaUrl());
     data.setModel(m_plugin->getModel());
     data.setPrompt(prompt);

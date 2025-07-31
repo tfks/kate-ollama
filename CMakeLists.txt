@@ -35,26 +35,28 @@ find_package(
 )
 
 set(PROJECT_SOURCES
-    src/ui/qollamaplaintextedit.h
-    src/ui/qollamaplaintextedit.cpp
-    src/ollamaglobals.h
-    src/ollamaglobals.cpp
+    src/ollama/ollamadata.h
+    src/ollama/ollamadata.cpp
+    src/ollama/ollamaglobals.h
+    src/ollama/ollamaglobals.cpp
+    src/ollama/ollamaresponse.h
+    src/ollama/ollamaresponse.cpp
+    src/ollama/ollamasystem.h
+    src/ollama/ollamasystem.cpp
+    src/ui/controls/qollamaplaintextedit.h
+    src/ui/controls/qollamaplaintextedit.cpp
+    src/ui/tabs/maintab.h
+    src/ui/tabs/maintab.cpp
+    src/ui/widgets/toolwidget.h
+    src/ui/widgets/toolwidget.cpp
+    src/ui/utilities/messages.h
+    src/ui/utilities/messages.cpp
+    src/ui/views/ollamaview.h
+    src/ui/views/ollamaview.cpp
     src/plugin.h
     src/plugin.cpp
     src/settings.h
-    src/settings.cpp
-    src/ollamadata.h
-    src/ollamadata.cpp
-    src/ollamasystem.h
-    src/ollamasystem.cpp
-    src/ollamaview.h
-    src/ollamaview.cpp
-    src/toolwidget.h
-    src/toolwidget.cpp
-    src/maintab.h
-    src/maintab.cpp
-    src/messages.h
-    src/messages.cpp)
+    src/settings.cpp)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins)
 

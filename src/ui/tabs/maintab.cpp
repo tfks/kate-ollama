@@ -23,13 +23,14 @@
 #include <qlineedit.h>
 #include <qnamespace.h>
 
-#include "maintab.h"
-#include "messages.h"
-#include "ollamadata.h"
-#include "ollamaglobals.h"
-#include "ollamasystem.h"
-#include "src/ui/qollamaplaintextedit.h"
-#include "toolwidget.h"
+#include "src/ollama/ollamadata.h"
+#include "src/ollama/ollamaglobals.h"
+#include "src/ollama/ollamaresponse.h"
+#include "src/ollama/ollamasystem.h"
+#include "src/ui/controls/qollamaplaintextedit.h"
+#include "src/ui/tabs/maintab.h"
+#include "src/ui/utilities/messages.h"
+#include "src/ui/widgets/toolwidget.h"
 
 MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, OllamaSystem *ollamaSystem, OllamaToolWidget *parent)
     : QWidget(parent)
@@ -50,6 +51,8 @@ MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, 
 
     m_label_override_ollama_endpoint = new QLabel(ki18n(OllamaGlobals::LabelOllamaEndpointOverride.toUtf8().data()).toString(), this);
     m_line_edit_override_ollama_endpoint = new QLineEdit(m_plugin->getOllamaUrl(), this);
+
+    // I want to add a toggle button to let ollama write code in the editor.
 
     auto ac = actionCollection();
 
@@ -165,32 +168,42 @@ void MainTab::handle_signalOnFullPrompt()
     ollamaRequest(prompt);
 }
 
-void MainTab::handle_signalOllamaRequestMetaDataChanged()
+void MainTab::handle_signalOllamaRequestMetaDataChanged(OllamaResponse ollamaResponse)
 {
-    QTextCursor cursor = m_textAreaInput->textCursor();
-    cursor.insertText("\n");
+    if (ollamaResponse.getReceiver() == "widget" || ollamaResponse.getReceiver() == "") {
+        QTextCursor cursor = m_textAreaInput->textCursor();
+        cursor.insertText("\n");
 
-    Messages::showStatusMessage(QStringLiteral("Info: Request started..."), KTextEditor::Message::Information, m_mainWindow);
+        Messages::showStatusMessage(QStringLiteral("Info: Request started..."), KTextEditor::Message::Information, m_mainWindow);
+    }
 }
 
-void MainTab::handle_signalOllamaRequestGotResponse(QString responseText)
+void MainTab::handle_signalOllamaRequestGotResponse(OllamaResponse ollamaResponse)
 {
+    if (ollamaResponse.getReceiver() != "widget" && ollamaResponse.getReceiver() != "")
+        return;
+
     QTextCursor cursor = m_textAreaOutput->textCursor();
-    cursor.insertText(responseText);
+    cursor.insertText(ollamaResponse.getResponseText());
 
     Messages::showStatusMessage(QStringLiteral("Info: Reply received..."), KTextEditor::Message::Information, m_mainWindow);
 }
 
-void MainTab::handle_signalOllamaRequestFinished(QString errorMessage)
+void MainTab::handle_signalOllamaRequestFinished(OllamaResponse ollamaResponse)
 {
-    if (errorMessage != QString("")) {
-        Messages::showStatusMessage(QStringLiteral("Error encountered: ").arg(errorMessage), KTextEditor::Message::Information, m_mainWindow);
-        qDebug() << "Error:" << errorMessage;
+    if (ollamaResponse.getErrorMessage() != QString("")) {
+        Messages::showStatusMessage(QStringLiteral("Error encountered: ").arg(ollamaResponse.getErrorMessage()),
+                                    KTextEditor::Message::Information,
+                                    m_mainWindow);
+        qDebug() << "Error:" << ollamaResponse.getErrorMessage();
         qDebug() << "Model:" << m_plugin->getModel();
         qDebug() << "System prompt:" << m_plugin->getSystemPrompt();
     }
-    QTextCursor cursor = m_textAreaOutput->textCursor();
-    cursor.insertText("\n\n");
+
+    if (ollamaResponse.getReceiver() == "widget" || ollamaResponse.getReceiver() == "") {
+        QTextCursor cursor = m_textAreaOutput->textCursor();
+        cursor.insertText("\n\n");
+    }
 }
 
 void MainTab::handle_signal_textAreaInputEnterKeyWasPressed(QKeyEvent *event)
@@ -228,6 +241,7 @@ void MainTab::ollamaRequest(QString prompt)
 
     QVector<QString> images;
 
+    data.setSender("widget");
     data.setOllamaUrl(m_plugin->getOllamaUrl());
     data.setModel(m_plugin->getModel());
     data.setPrompt(prompt);

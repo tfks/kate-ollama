@@ -8,8 +8,8 @@
 #define KATEOLLAMAPLUGIN_H
 
 // KF headers
-#include "src/ollamadata.h"
-#include "src/ollamasystem.h"
+#include "ollama/ollamadata.h"
+#include "ollama/ollamasystem.h"
 #include <KTextEditor/Document>
 #include <KTextEditor/MainWindow>
 #include <KTextEditor/Plugin>
@@ -17,8 +17,6 @@
 #include <KTextEditor/View>
 #include <KXMLGUIClient>
 #include <QString>
-
-#include "ollamasystem.h"
 
 class KateOllamaPlugin : public KTextEditor::Plugin
 {

@@ -3,10 +3,11 @@
  *
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
-#include "ollamadata.h"
 
 #include <QJsonArray>
 #include <qhashfunctions.h>
+
+#include "src/ollama/ollamadata.h"
 
 OllamaData::OllamaData()
     : context_(false)
@@ -18,11 +19,20 @@ OllamaData::~OllamaData()
 {
 }
 
+void OllamaData::setSender(QString sender)
+{
+    sender_ = sender;
+}
+QString OllamaData::getSender() const
+{
+    return sender_;
+}
+
 void OllamaData::setOllamaUrl(QString url)
 {
     url_ = url;
 }
-QString OllamaData::getOllamaUrl()
+QString OllamaData::getOllamaUrl() const
 {
     return url_;
 }

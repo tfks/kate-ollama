@@ -4,9 +4,6 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#include "settings.h"
-#include "plugin.h"
-
 #include <KConfigGroup>
 #include <KLocalizedString>
 #include <KSharedConfig>
@@ -25,6 +22,9 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <algorithm>
+
+#include "src/plugin.h"
+#include "src/settings.h"
 
 KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *plugin)
     : KTextEditor::ConfigPage(parent)

@@ -14,9 +14,9 @@
 #include <QObject>
 #include <QVBoxLayout>
 
-#include "maintab.h"
-#include "ollamaglobals.h"
-#include "toolwidget.h"
+#include "src/ollama/ollamaglobals.h"
+#include "src/ui/tabs/maintab.h"
+#include "src/ui/widgets/toolwidget.h"
 
 OllamaToolWidget::OllamaToolWidget(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, OllamaSystem *ollamaSystem, QWidget *parent)
     : QWidget(parent)

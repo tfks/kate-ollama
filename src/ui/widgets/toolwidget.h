@@ -12,8 +12,8 @@
 #include <QTabWidget>
 #include <QTextBrowser>
 
-#include "plugin.h"
-#include "src/ollamasystem.h"
+#include "src/ollama/ollamasystem.h"
+#include "src/plugin.h"
 
 class OllamaToolWidget : public QWidget
 {

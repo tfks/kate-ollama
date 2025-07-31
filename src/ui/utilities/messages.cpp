@@ -8,7 +8,7 @@
 #include <KTextEditor/Message>
 #include <KTextEditor/View>
 
-#include "messages.h"
+#include "src/ui/utilities/messages.h"
 
 void Messages::showStatusMessage(const QString &message, KTextEditor::Message::MessageType level, KTextEditor::MainWindow *mainWindow)
 {

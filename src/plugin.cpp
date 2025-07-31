@@ -4,14 +4,6 @@
     SPDX-License-Identifier: LGPL-2.0-or-later
 */
 
-#include "plugin.h"
-
-#include "ollamaview.h"
-#include "settings.h"
-#include "src/ollamadata.h"
-#include "src/ollamasystem.h"
-#include "toolwidget.h"
-
 // KF headers
 #include <KActionCollection>
 #include <KConfigGroup>
@@ -46,7 +38,14 @@
 #include <QVector>
 #include <QWidget>
 
-#include "ollamasystem.h"
+#include "ollama/ollamasystem.h"
+#include "plugin.h"
+
+#include "ollama/ollamadata.h"
+#include "ollama/ollamasystem.h"
+#include "settings.h"
+#include "ui/views/ollamaview.h"
+#include "ui/widgets/toolwidget.h"
 
 using namespace Qt::Literals::StringLiterals;
 

@@ -9,7 +9,8 @@
 #include <QJsonArray>
 #include <QObject>
 
-#include "src/ollamadata.h"
+#include "src/ollama/ollamadata.h"
+#include "src/ollama/ollamaresponse.h"
 
 class OllamaSystem : public QObject
 {
@@ -27,9 +28,9 @@ signals:
     void signal_modelsListLoaded(const QList<QJsonValue> &modelsList);
     void signal_errorFetchingModelsList(QString error);
 
-    void signal_ollamaRequestMetaDataChanged();
-    void signal_ollamaRequestGotResponse(QString responseText);
-    void signal_ollamaRequestFinished(QString errorMessage);
+    void signal_ollamaRequestMetaDataChanged(OllamaResponse ollamaResponse);
+    void signal_ollamaRequestGotResponse(OllamaResponse ollamaResponse);
+    void signal_ollamaRequestFinished(OllamaResponse ollamaResponse);
 
 private:
     QObject *parent = nullptr;

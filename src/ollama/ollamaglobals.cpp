@@ -3,8 +3,9 @@
  *
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
-#include "ollamaglobals.h"
 #include <qstringliteral.h>
+
+#include "src/ollama/ollamaglobals.h"
 
 QString OllamaGlobals::PluginName = QStringLiteral("Ollama");
 QString OllamaGlobals::IconName = QStringLiteral("applications-all");

@@ -11,8 +11,9 @@
 #include <KXMLGUIClient>
 #include <QObject>
 
-#include "src/ollamasystem.h"
-#include "toolwidget.h"
+#include "src/ollama/ollamaresponse.h"
+#include "src/ollama/ollamasystem.h"
+#include "src/ui/widgets/toolwidget.h"
 
 class KateOllamaPlugin;
 
@@ -30,9 +31,9 @@ private slots:
     void handle_onFullPrompt();
     void handle_onPrintCommand();
 
-    void handle_ollamaRequestMetaDataChanged();
-    void handle_ollamaRequestGotResponse(QString responseText);
-    void handle_ollamaRequestFinished(QString errorMessage);
+    void handle_ollamaRequestMetaDataChanged(OllamaResponse ollamaResponse);
+    void handle_ollamaRequestGotResponse(OllamaResponse ollamaResponse);
+    void handle_ollamaRequestFinished(OllamaResponse ollamaResponse);
 
 private:
     QString getPrompt();
