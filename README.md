@@ -29,3 +29,8 @@ If you are developing a symlink as root can simplify the loading of the latest p
 ```
 ln -s /your-folder/build/plugins/kf6/ktexteditor/kateollama.so /usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/ktexteditor/kateollama.so
 ```
+
+## Added functionality in this repo:
+Created a tabbed panel which let's the user query Ollama outside of the editor. Still in development but basic functionality is there.
+
+![alt text](image.png)
