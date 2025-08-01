@@ -13,6 +13,7 @@
 #include <KXMLGUIClient>
 
 #include <QComboBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QObject>
@@ -20,6 +21,7 @@
 #include <QPushButton>
 #include <QSpacerItem>
 #include <QSplitter>
+#include <QVBoxLayout>
 #include <QWidget>
 #include <qevent.h>
 
@@ -58,14 +60,24 @@ private:
 
     KTextEditor::MainWindow *mainWindow_ = nullptr;
 
+    QVBoxLayout *mainLayout_;
+
+    QWidget *topWidget_;
+    QHBoxLayout *topLayout_;
     QComboBox *modelsComboBox_;
-    QPushButton *outputInEditorPushButton_;
     QPushButton *newTabBtn_;
+
+    QWidget *middleWidget_;
+    QHBoxLayout *middleLayout_;
+    QSplitter *splitter_;
     QOllamaPlainTextEdit *textAreaInput_;
     QOllamaPlainTextEdit *textAreaOutput_;
-    QSplitter *splitter_;
+
+    QWidget *bottomWidget_;
+    QHBoxLayout *bottomLayout_;
     QLabel *label_override_ollama_endpoint_;
     QLineEdit *line_edit_override_ollama_endpoint_;
+    QPushButton *outputInEditorPushButton_;
 
     KateOllamaPlugin *plugin_;
     OllamaSystem *ollamaSystem_;

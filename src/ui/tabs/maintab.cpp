@@ -15,13 +15,15 @@
 #include <QKeyEvent>
 #include <QKeySequence>
 #include <QLabel>
+#include <QLayout>
+#include <QLineEdit>
 #include <QLocale>
 #include <QObject>
 #include <QPlainTextEdit>
 #include <QSizePolicy>
 #include <QSplitter>
 #include <QVBoxLayout>
-#include <qlineedit.h>
+#include <QWidget>
 #include <qnamespace.h>
 
 #include "src/ollama/ollamadata.h"
@@ -39,29 +41,66 @@ MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, 
     , plugin_(plugin)
     , ollamaSystem_(ollamaSystem)
 {
-    auto l = new QVBoxLayout(this);
-
-    modelsComboBox_ = new QComboBox(this);
-    outputInEditorPushButton_ = new QPushButton(QIcon::fromTheme(QStringLiteral("text-x-generic")), QString(i18n("Output in editor (Off)")));
-    outputInEditorPushButton_->setToolTip(i18n("Output in editor"));
-    newTabBtn_ = new QPushButton(QIcon::fromTheme(QStringLiteral("tab-new")), QString());
+    topWidget_ = new QWidget(this);
+    topWidget_->setFixedHeight(35);
+    topWidget_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    topLayout_ = new QHBoxLayout(topWidget_);
+    modelsComboBox_ = new QComboBox(topWidget_);
+    modelsComboBox_->setFixedHeight(30);
+    // modelsComboBox_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    newTabBtn_ = new QPushButton(QIcon::fromTheme(QStringLiteral("tab-new")), QString(), topWidget_);
+    newTabBtn_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    newTabBtn_->setFixedHeight(30);
     newTabBtn_->setToolTip(i18n("Add new tab"));
+    topLayout_->addWidget(modelsComboBox_);
+    topLayout_->addWidget(newTabBtn_);
+    // topLayout_->addStretch(1);
+    topWidget_->setLayout(topLayout_);
 
-    textAreaInput_ = new QOllamaPlainTextEdit(this);
+    middleWidget_ = new QWidget(this);
+    middleLayout_ = new QHBoxLayout(middleWidget_);
+    splitter_ = new QSplitter(Qt::Vertical, middleWidget_);
+    // splitter_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    textAreaInput_ = new QOllamaPlainTextEdit(middleWidget_);
     textAreaInput_->setPlaceholderText(ki18n(OllamaGlobals::HelpText.toUtf8().data()).toString());
-    textAreaOutput_ = new QOllamaPlainTextEdit(this);
+    // textAreaInput_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    textAreaOutput_ = new QOllamaPlainTextEdit(middleWidget_);
+    splitter_->addWidget(textAreaOutput_);
+    splitter_->addWidget(textAreaInput_);
+    middleLayout_->addWidget(splitter_);
+    // middleLayout_->addStretch(1);
+    middleWidget_->setLayout(middleLayout_);
 
-    splitter_ = new QSplitter(Qt::Vertical);
+    bottomWidget_ = new QWidget(this);
+    bottomWidget_->setFixedHeight(35);
+    bottomWidget_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    bottomWidget_->setContentsMargins(0, 0, 0, 10);
+    bottomLayout_ = new QHBoxLayout(bottomWidget_);
+    label_override_ollama_endpoint_ = new QLabel(ki18n(OllamaGlobals::LabelOllamaEndpointOverride.toUtf8().data()).toString(), bottomWidget_);
+    // label_override_ollama_endpoint_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    label_override_ollama_endpoint_->setFixedHeight(30);
+    line_edit_override_ollama_endpoint_ = new QLineEdit(plugin_->getOllamaUrl(), bottomWidget_);
+    // line_edit_override_ollama_endpoint_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    line_edit_override_ollama_endpoint_->setFixedHeight(30);
+    outputInEditorPushButton_ = new QPushButton(QIcon::fromTheme(QStringLiteral("text-x-generic")), QString(i18n("Output in editor (Off)")), bottomWidget_);
+    // outputInEditorPushButton_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    outputInEditorPushButton_->setFixedHeight(30);
+    outputInEditorPushButton_->setToolTip(i18n("Output in editor"));
+    bottomLayout_->addWidget(label_override_ollama_endpoint_);
+    bottomLayout_->addWidget(line_edit_override_ollama_endpoint_);
+    bottomLayout_->addWidget(outputInEditorPushButton_);
+    // bottomLayout_->addStretch(1);
+    bottomWidget_->setLayout(bottomLayout_);
 
-    splitter_->setMinimumSize(100, 100);
-    textAreaInput_->setMinimumHeight(50);
-    textAreaInput_->setMinimumHeight(50);
+    // auto dummy = new QWidget;
 
-    label_override_ollama_endpoint_ = new QLabel(ki18n(OllamaGlobals::LabelOllamaEndpointOverride.toUtf8().data()).toString(), this);
-    line_edit_override_ollama_endpoint_ = new QLineEdit(plugin_->getOllamaUrl(), this);
+    mainLayout_ = new QVBoxLayout(this);
+    mainLayout_->addWidget(topWidget_);
+    mainLayout_->addWidget(middleWidget_);
+    // mainLayout_->addWidget(dummy);
+    mainLayout_->addWidget(bottomWidget_);
 
-    label_override_ollama_endpoint_->setMaximumHeight(15);
-    line_edit_override_ollama_endpoint_->setMaximumHeight(15);
+    setLayout(mainLayout_);
 
     auto ac = actionCollection();
 
@@ -79,48 +118,6 @@ MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, 
     a3->setText(i18n("New line"));
     a3->setIcon(QIcon::fromTheme(QStringLiteral("debug-run")));
     KActionCollection::setDefaultShortcut(a2, QKeySequence((Qt::SHIFT | Qt::Key_Enter)));
-
-    auto hl = new QHBoxLayout();
-
-    hl->addWidget(modelsComboBox_);
-    hl->addWidget(newTabBtn_);
-
-    l->addLayout(hl);
-
-    auto h2 = new QHBoxLayout();
-
-    QSizePolicy spTop(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    spTop.setVerticalPolicy(QSizePolicy::Preferred);
-
-    QSizePolicy spBottom(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    spBottom.setVerticalPolicy(QSizePolicy::Fixed);
-
-    textAreaInput_->setSizePolicy(spTop);
-
-    label_override_ollama_endpoint_->setSizePolicy(spBottom);
-    line_edit_override_ollama_endpoint_->setSizePolicy(spBottom);
-
-    h2->addWidget(label_override_ollama_endpoint_);
-    h2->addWidget(line_edit_override_ollama_endpoint_);
-    h2->addWidget(outputInEditorPushButton_);
-    h2->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
-
-    modelsComboBox_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    newTabBtn_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    label_override_ollama_endpoint_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    line_edit_override_ollama_endpoint_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    line_edit_override_ollama_endpoint_->setFixedWidth(200);
-
-    // l->addWidget(textAreaOutput_, 1);
-    // l->addWidget(textAreaInput_, 1);
-    l->addWidget(splitter_);
-
-    splitter_->addWidget(textAreaOutput_);
-    splitter_->addWidget(textAreaInput_);
-
-    l->addLayout(h2);
-
-    l->addStretch();
 
     connect(newTabBtn_, &QAbstractButton::clicked, parent, &OllamaToolWidget::newTab);
 
