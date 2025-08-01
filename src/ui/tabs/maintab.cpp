@@ -47,28 +47,23 @@ MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, 
     topLayout_ = new QHBoxLayout(topWidget_);
     modelsComboBox_ = new QComboBox(topWidget_);
     modelsComboBox_->setFixedHeight(30);
-    // modelsComboBox_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     newTabBtn_ = new QPushButton(QIcon::fromTheme(QStringLiteral("tab-new")), QString(), topWidget_);
     newTabBtn_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     newTabBtn_->setFixedHeight(30);
     newTabBtn_->setToolTip(i18n("Add new tab"));
     topLayout_->addWidget(modelsComboBox_);
     topLayout_->addWidget(newTabBtn_);
-    // topLayout_->addStretch(1);
     topWidget_->setLayout(topLayout_);
 
     middleWidget_ = new QWidget(this);
     middleLayout_ = new QHBoxLayout(middleWidget_);
     splitter_ = new QSplitter(Qt::Vertical, middleWidget_);
-    // splitter_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     textAreaInput_ = new QOllamaPlainTextEdit(middleWidget_);
     textAreaInput_->setPlaceholderText(ki18n(OllamaGlobals::HelpText.toUtf8().data()).toString());
-    // textAreaInput_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     textAreaOutput_ = new QOllamaPlainTextEdit(middleWidget_);
     splitter_->addWidget(textAreaOutput_);
     splitter_->addWidget(textAreaInput_);
     middleLayout_->addWidget(splitter_);
-    // middleLayout_->addStretch(1);
     middleWidget_->setLayout(middleLayout_);
 
     bottomWidget_ = new QWidget(this);
@@ -77,27 +72,20 @@ MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, 
     bottomWidget_->setContentsMargins(0, 0, 0, 10);
     bottomLayout_ = new QHBoxLayout(bottomWidget_);
     label_override_ollama_endpoint_ = new QLabel(ki18n(OllamaGlobals::LabelOllamaEndpointOverride.toUtf8().data()).toString(), bottomWidget_);
-    // label_override_ollama_endpoint_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     label_override_ollama_endpoint_->setFixedHeight(30);
     line_edit_override_ollama_endpoint_ = new QLineEdit(plugin_->getOllamaUrl(), bottomWidget_);
-    // line_edit_override_ollama_endpoint_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     line_edit_override_ollama_endpoint_->setFixedHeight(30);
     outputInEditorPushButton_ = new QPushButton(QIcon::fromTheme(QStringLiteral("text-x-generic")), QString(i18n("Output in editor (Off)")), bottomWidget_);
-    // outputInEditorPushButton_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     outputInEditorPushButton_->setFixedHeight(30);
     outputInEditorPushButton_->setToolTip(i18n("Output in editor"));
     bottomLayout_->addWidget(label_override_ollama_endpoint_);
     bottomLayout_->addWidget(line_edit_override_ollama_endpoint_);
     bottomLayout_->addWidget(outputInEditorPushButton_);
-    // bottomLayout_->addStretch(1);
     bottomWidget_->setLayout(bottomLayout_);
-
-    // auto dummy = new QWidget;
 
     mainLayout_ = new QVBoxLayout(this);
     mainLayout_->addWidget(topWidget_);
     mainLayout_->addWidget(middleWidget_);
-    // mainLayout_->addWidget(dummy);
     mainLayout_->addWidget(bottomWidget_);
 
     setLayout(mainLayout_);
@@ -209,6 +197,7 @@ void MainTab::handle_signalOllamaRequestGotResponse(OllamaResponse ollamaRespons
 
     QTextCursor cursor = textAreaOutput_->textCursor();
     cursor.insertText(ollamaResponse.getResponseText());
+    cursor.insertText("\n\n");
 
     Messages::showStatusMessage(QStringLiteral("Info: Reply received..."), KTextEditor::Message::Information, mainWindow_);
 }
@@ -233,7 +222,6 @@ void MainTab::handle_signalOllamaRequestFinished(OllamaResponse ollamaResponse)
 void MainTab::handle_signal_textAreaInputEnterKeyWasPressed(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return) {
-        // Handle the Enter or Return key press here
         qDebug() << "Enter/Return key pressed in CustomWidget";
 
         QString prompt = textAreaInput_->toPlainText();
@@ -246,10 +234,15 @@ void MainTab::handle_signalOutputInEditorClicked()
     if (outputInEditor_ == false) {
         outputInEditor_ = true;
         outputInEditorPushButton_->setText(i18n("Output in editor (On)"));
+        textAreaInput_->setFocus();
     } else {
         outputInEditor_ = false;
         outputInEditorPushButton_->setText(i18n("Output in editor (Off)"));
     }
+
+    QTextCursor cursor = textAreaInput_->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    textAreaInput_->setTextCursor(cursor);
 }
 
 void MainTab::loadModels()
@@ -282,8 +275,22 @@ void MainTab::ollamaRequest(QString prompt)
         data.setSender("widget");
     }
 
-    data.setOllamaUrl(plugin_->getOllamaUrl());
-    data.setModel(plugin_->getModel());
+    QString ollamaUrl = line_edit_override_ollama_endpoint_->displayText();
+
+    if (ollamaUrl != nullptr && ollamaUrl != "" && data.isOllamaUrlValid()) {
+        data.setOllamaUrl(ollamaUrl);
+    } else {
+        data.setOllamaUrl(plugin_->getOllamaUrl());
+    }
+
+    QString model = modelsComboBox_->currentText();
+
+    if (model != nullptr && model != "") {
+        data.setModel(model);
+    } else {
+        data.setModel(plugin_->getModel());
+    }
+
     data.setPrompt(prompt);
     data.setSuffix("");
 

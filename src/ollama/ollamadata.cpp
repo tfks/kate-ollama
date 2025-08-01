@@ -4,8 +4,9 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include <QHashFunctions>
 #include <QJsonArray>
-#include <qhashfunctions.h>
+#include <QUrl>
 
 #include "src/ollama/ollamadata.h"
 
@@ -180,4 +181,11 @@ QJsonObject OllamaData::toJson() const
     }
 
     return json;
+}
+
+bool OllamaData::isOllamaUrlValid()
+{
+    QUrl qUrl(url_);
+
+    return qUrl.isValid();
 }

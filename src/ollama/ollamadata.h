@@ -99,6 +99,8 @@ public:
     // Converts all data, if filled, to a QJsonObject
     QJsonObject toJson() const;
 
+    bool isOllamaUrlValid();
+
 private:
     QString sender_;
     QString url_;
