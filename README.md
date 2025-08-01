@@ -33,4 +33,4 @@ ln -s /your-folder/build/plugins/kf6/ktexteditor/kateollama.so /usr/lib/x86_64-l
 ## Added functionality in this repo:
 Created a tabbed panel which let's the user query Ollama outside of the editor. Still in development but basic functionality is there.
 
-![alt text](image.png)
+![alt text](image-1.png)
