@@ -37,12 +37,11 @@ public:
     void reset() override;
 
 private:
-    QComboBox *m_modelsComboBox;
-    QTextEdit *m_systemPromptEdit;
-    QLineEdit *m_ollamaURLText;
-    QLabel *m_infoLabel;
-
-    KateOllamaPlugin *const m_plugin;
+    KateOllamaPlugin *const plugin_;
+    QComboBox *modelsComboBox_;
+    QTextEdit *systemPromptEdit_;
+    QLineEdit *ollamaURLText_;
+    QLabel *infoLabel_;
 };
 
 #endif // KATEOLLAMACONFIGPAGE_H

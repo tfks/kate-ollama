@@ -44,7 +44,6 @@ set(PROJECT_SOURCES
     src/ollama/ollamasystem.h
     src/ollama/ollamasystem.cpp
     src/ui/controls/qollamaplaintextedit.h
-    src/ui/controls/qollamaplaintextedit.cpp
     src/ui/tabs/maintab.h
     src/ui/tabs/maintab.cpp
     src/ui/widgets/toolwidget.h

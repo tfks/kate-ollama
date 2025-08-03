@@ -40,11 +40,11 @@ private:
     void ollamaRequest(QString prompt);
 
 private:
-    KateOllamaPlugin *m_plugin = nullptr;
-    KTextEditor::MainWindow *m_mainWindow = nullptr;
-    OllamaToolWidget *m_toolWidget = nullptr;
-    std::unique_ptr<QWidget> m_toolview;
-    OllamaSystem *m_ollamaSystem;
+    KateOllamaPlugin *plugin_ = nullptr;
+    KTextEditor::MainWindow *mainWindow_ = nullptr;
+    OllamaToolWidget *toolWidget_ = nullptr;
+    std::unique_ptr<QWidget> toolview_;
+    OllamaSystem *ollamaSystem_;
 };
 
 #endif // KATEOLLAMAVIEW_H

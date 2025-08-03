@@ -20,10 +20,8 @@ class OllamaToolWidget : public QWidget
     Q_OBJECT
 
 public:
-    // Constructor
     explicit OllamaToolWidget(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, OllamaSystem *ollamaSystem, QWidget *parent = nullptr);
 
-    // Destructor
     virtual ~OllamaToolWidget();
 
     // Add's a new tab
@@ -32,9 +30,9 @@ public:
     void onViewChanged(KTextEditor::View *v);
 
 private:
-    KateOllamaPlugin *m_plugin;
-    KTextEditor::MainWindow *m_mainWindow = nullptr;
-    QTabWidget m_tabWidget;
-    OllamaSystem *m_ollamaSystem;
+    KateOllamaPlugin *plugin_;
+    KTextEditor::MainWindow *mainWindow_ = nullptr;
+    QTabWidget tabWidget_;
+    OllamaSystem *ollamaSystem_;
 };
 #endif // OLLAMATOOLWIDGET_HEADER_H

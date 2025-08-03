@@ -41,8 +41,8 @@ public:
 
 public slots:
     void handle_signalModelsListLoaded(const QList<QJsonValue> &modelsList);
-    void handle_signalOnSinglePrompt();
-    void handle_signalOnFullPrompt();
+    // void handle_signalOnSinglePrompt();
+    // void handle_signalOnFullPrompt();
 
     void handle_signalOllamaRequestMetaDataChanged(OllamaResponse ollamaResponse);
     void handle_signalOllamaRequestGotResponse(OllamaResponse ollamaResponse);

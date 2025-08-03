@@ -51,16 +51,16 @@ using namespace Qt::Literals::StringLiterals;
 
 KateOllamaView::KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainwindow, OllamaSystem *ollamaSystem)
     : KXMLGUIClient()
-    , m_plugin(plugin)
-    , m_mainWindow(mainwindow)
-    , m_ollamaSystem(ollamaSystem)
+    , plugin_(plugin)
+    , mainWindow_(mainwindow)
+    , ollamaSystem_(ollamaSystem)
 {
     KXMLGUIClient::setComponentName(u"kateollama"_s, i18n("Kate-Ollama"));
     KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
 
-    m_plugin->setModel(group.readEntry("Model"));
-    m_plugin->setSystemPrompt(group.readEntry("SystemPrompt"));
-    m_plugin->setOllamaUrl(group.readEntry("URL"));
+    plugin_->setModel(group.readEntry("Model"));
+    plugin_->setSystemPrompt(group.readEntry("SystemPrompt"));
+    plugin_->setOllamaUrl(group.readEntry("URL"));
 
     auto ac = actionCollection();
     QAction *a = ac->addAction(QStringLiteral("kateollama"));
@@ -80,68 +80,68 @@ KateOllamaView::KateOllamaView(KateOllamaPlugin *plugin, KTextEditor::MainWindow
     KActionCollection::setDefaultShortcut(a3, QKeySequence((Qt::CTRL | Qt::Key_Slash)));
     connect(a3, &QAction::triggered, this, &KateOllamaView::handle_onPrintCommand);
 
-    m_mainWindow->guiFactory()->addClient(this);
+    mainWindow_->guiFactory()->addClient(this);
 
-    auto toolview = m_mainWindow->createToolView(plugin,
-                                                 "ollamatoolwidget",
-                                                 KTextEditor::MainWindow::Bottom,
-                                                 QIcon::fromTheme(OllamaGlobals::IconName),
-                                                 OllamaGlobals::PluginName);
+    auto toolview = mainWindow_->createToolView(plugin,
+                                                "ollamatoolwidget",
+                                                KTextEditor::MainWindow::Bottom,
+                                                QIcon::fromTheme(OllamaGlobals::IconName),
+                                                OllamaGlobals::PluginName);
 
-    m_toolWidget = new OllamaToolWidget(m_plugin, m_mainWindow, m_ollamaSystem, toolview);
+    toolWidget_ = new OllamaToolWidget(plugin_, mainWindow_, ollamaSystem_, toolview);
 
-    m_toolview.reset(toolview);
+    toolview_.reset(toolview);
 
-    connect(m_ollamaSystem, &OllamaSystem::signal_ollamaRequestMetaDataChanged, this, &KateOllamaView::handle_ollamaRequestMetaDataChanged);
+    connect(ollamaSystem_, &OllamaSystem::signal_ollamaRequestMetaDataChanged, this, &KateOllamaView::handle_ollamaRequestMetaDataChanged);
 
-    connect(m_ollamaSystem, &OllamaSystem::signal_ollamaRequestGotResponse, this, &KateOllamaView::handle_ollamaRequestGotResponse);
+    connect(ollamaSystem_, &OllamaSystem::signal_ollamaRequestGotResponse, this, &KateOllamaView::handle_ollamaRequestGotResponse);
 
-    connect(m_ollamaSystem, &OllamaSystem::signal_ollamaRequestFinished, this, &KateOllamaView::handle_ollamaRequestFinished);
+    connect(ollamaSystem_, &OllamaSystem::signal_ollamaRequestFinished, this, &KateOllamaView::handle_ollamaRequestFinished);
 }
 
 KateOllamaView::~KateOllamaView()
 {
-    m_mainWindow->guiFactory()->removeClient(this);
+    mainWindow_->guiFactory()->removeClient(this);
 }
 
 void KateOllamaView::handle_onSinglePrompt()
 {
-    KTextEditor::View *view = m_mainWindow->activeView();
+    KTextEditor::View *view = mainWindow_->activeView();
     if (view) {
         QString prompt = KateOllamaView::getPrompt();
         if (!prompt.isEmpty()) {
-            Messages::showStatusMessage(QStringLiteral("Info: Single prompt.."), KTextEditor::Message::Information, m_mainWindow);
+            Messages::showStatusMessage(QStringLiteral("Info: Single prompt.."), KTextEditor::Message::Information, mainWindow_);
             KateOllamaView::ollamaRequest(prompt);
         } else {
-            Messages::showStatusMessage(QStringLiteral("Info: No single prompt..."), KTextEditor::Message::Information, m_mainWindow);
+            Messages::showStatusMessage(QStringLiteral("Info: No single prompt..."), KTextEditor::Message::Information, mainWindow_);
         }
     } else {
-        Messages::showStatusMessage(QStringLiteral("Info: Single prompt, no view..."), KTextEditor::Message::Information, m_mainWindow);
+        Messages::showStatusMessage(QStringLiteral("Info: Single prompt, no view..."), KTextEditor::Message::Information, mainWindow_);
     }
 }
 
 void KateOllamaView::handle_onFullPrompt()
 {
-    KTextEditor::View *view = m_mainWindow->activeView();
+    KTextEditor::View *view = mainWindow_->activeView();
     KTextEditor::Document *document = view->document();
     QString text = document->text();
     if (view) {
         QString prompt = KateOllamaView::getPrompt();
         if (!prompt.isEmpty()) {
-            Messages::showStatusMessage(QStringLiteral("Info: Full prompt..."), KTextEditor::Message::Information, m_mainWindow);
+            Messages::showStatusMessage(QStringLiteral("Info: Full prompt..."), KTextEditor::Message::Information, mainWindow_);
             KateOllamaView::ollamaRequest(text + "\n" + prompt);
         } else {
-            Messages::showStatusMessage(QStringLiteral("Info: No full prompt..."), KTextEditor::Message::Information, m_mainWindow);
+            Messages::showStatusMessage(QStringLiteral("Info: No full prompt..."), KTextEditor::Message::Information, mainWindow_);
         }
     } else {
-        Messages::showStatusMessage(QStringLiteral("Info: Full prompt, no view..."), KTextEditor::Message::Information, m_mainWindow);
+        Messages::showStatusMessage(QStringLiteral("Info: Full prompt, no view..."), KTextEditor::Message::Information, mainWindow_);
     }
 }
 
 void KateOllamaView::handle_onPrintCommand()
 {
-    Messages::showStatusMessage(QStringLiteral("Info: Printing command..."), KTextEditor::Message::Information, m_mainWindow);
-    KTextEditor::View *view = m_mainWindow->activeView();
+    Messages::showStatusMessage(QStringLiteral("Info: Printing command..."), KTextEditor::Message::Information, mainWindow_);
+    KTextEditor::View *view = mainWindow_->activeView();
     ;
     if (view) {
         KTextEditor::Document *document = view->document();
@@ -154,11 +154,11 @@ void KateOllamaView::handle_onPrintCommand()
 void KateOllamaView::handle_ollamaRequestMetaDataChanged(OllamaResponse ollamaResponse)
 {
     if (ollamaResponse.getReceiver() == "editor" || ollamaResponse.getReceiver() == "") {
-        KTextEditor::View *view = m_mainWindow->activeView();
+        KTextEditor::View *view = mainWindow_->activeView();
         KTextEditor::Document *document = view->document();
         KTextEditor::Cursor cursor = view->cursorPosition();
         document->insertText(cursor, "\n");
-        Messages::showStatusMessage(QStringLiteral("Info: Request started..."), KTextEditor::Message::Information, m_mainWindow);
+        Messages::showStatusMessage(QStringLiteral("Info: Request started..."), KTextEditor::Message::Information, mainWindow_);
     }
 }
 
@@ -167,11 +167,11 @@ void KateOllamaView::handle_ollamaRequestGotResponse(OllamaResponse ollamaRespon
     if (ollamaResponse.getReceiver() != "editor" && ollamaResponse.getReceiver() != "")
         return;
 
-    KTextEditor::View *view = m_mainWindow->activeView();
+    KTextEditor::View *view = mainWindow_->activeView();
     KTextEditor::Document *document = view->document();
     KTextEditor::Cursor cursor = view->cursorPosition();
     document->insertText(cursor, ollamaResponse.getResponseText());
-    Messages::showStatusMessage(QStringLiteral("Info: Reply received..."), KTextEditor::Message::Information, m_mainWindow);
+    Messages::showStatusMessage(QStringLiteral("Info: Reply received..."), KTextEditor::Message::Information, mainWindow_);
 }
 
 void KateOllamaView::handle_ollamaRequestFinished(OllamaResponse ollamaResponse)
@@ -179,14 +179,14 @@ void KateOllamaView::handle_ollamaRequestFinished(OllamaResponse ollamaResponse)
     if (ollamaResponse.getErrorMessage() != QString("")) {
         Messages::showStatusMessage(QStringLiteral("Error encountered: ").arg(ollamaResponse.getErrorMessage()),
                                     KTextEditor::Message::Information,
-                                    m_mainWindow);
+                                    mainWindow_);
         qDebug() << "Error:" << ollamaResponse.getErrorMessage();
-        qDebug() << "Model:" << m_plugin->getModel();
-        qDebug() << "System prompt:" << m_plugin->getSystemPrompt();
+        qDebug() << "Model:" << plugin_->getModel();
+        qDebug() << "System prompt:" << plugin_->getSystemPrompt();
     }
 
     if (ollamaResponse.getReceiver() == "editor" || ollamaResponse.getReceiver() == "") {
-        KTextEditor::View *view = m_mainWindow->activeView();
+        KTextEditor::View *view = mainWindow_->activeView();
         KTextEditor::Document *document = view->document();
         KTextEditor::Cursor cursor = view->cursorPosition();
         document->insertText(cursor, "\n");
@@ -195,27 +195,27 @@ void KateOllamaView::handle_ollamaRequestFinished(OllamaResponse ollamaResponse)
 
 QString KateOllamaView::getPrompt()
 {
-    Messages::showStatusMessage(QStringLiteral("Info: Getting prompt..."), KTextEditor::Message::Information, m_mainWindow);
-    KTextEditor::View *view = m_mainWindow->activeView();
+    Messages::showStatusMessage(QStringLiteral("Info: Getting prompt..."), KTextEditor::Message::Information, mainWindow_);
+    KTextEditor::View *view = mainWindow_->activeView();
     KTextEditor::Document *document = view->document();
     QString text = document->text();
 
-    QString lastMatch = m_ollamaSystem->getPromptFromText(text);
+    QString lastMatch = ollamaSystem_->getPromptFromText(text);
 
     return lastMatch;
 }
 
 void KateOllamaView::ollamaRequest(QString prompt)
 {
-    Messages::showStatusMessage(QStringLiteral("Info: Setting up request..."), KTextEditor::Message::Information, m_mainWindow);
+    Messages::showStatusMessage(QStringLiteral("Info: Setting up request..."), KTextEditor::Message::Information, mainWindow_);
 
     QJsonObject json_data;
     OllamaData data;
     QVector<QString> images;
 
     data.setSender("editor");
-    data.setOllamaUrl(m_plugin->getOllamaUrl());
-    data.setModel(m_plugin->getModel());
+    data.setOllamaUrl(plugin_->getOllamaUrl());
+    data.setModel(plugin_->getModel());
     data.setPrompt(prompt);
     data.setSuffix("");
 
@@ -225,7 +225,7 @@ void KateOllamaView::ollamaRequest(QString prompt)
 
     // data.setFormat("");
     // data.setOptions("");
-    data.setSystemPrompt(m_plugin->getSystemPrompt());
+    data.setSystemPrompt(plugin_->getSystemPrompt());
     // data.setContext("");
     // data.setStream("");
 
@@ -233,5 +233,5 @@ void KateOllamaView::ollamaRequest(QString prompt)
 
     QJsonDocument doc(json_data);
 
-    m_ollamaSystem->ollamaRequest(data);
+    ollamaSystem_->ollamaRequest(data);
 }

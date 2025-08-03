@@ -90,30 +90,7 @@ MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, 
 
     setLayout(mainLayout_);
 
-    auto ac = actionCollection();
-
-    QAction *a = ac->addAction(QStringLiteral("kateollama-standard-enter"));
-    a->setText(i18n("ask-question"));
-    a->setIcon(QIcon::fromTheme(QStringLiteral("debug-run")));
-    KActionCollection::setDefaultShortcut(a, QKeySequence(Qt::Key_Enter));
-
-    QAction *a2 = ac->addAction(QStringLiteral("kateollama-newline"));
-    a2->setText(i18n("New line"));
-    a2->setIcon(QIcon::fromTheme(QStringLiteral("debug-run")));
-    KActionCollection::setDefaultShortcut(a2, QKeySequence((Qt::CTRL | Qt::Key_Enter)));
-
-    QAction *a3 = ac->addAction(QStringLiteral("kateollama-newline-alt"));
-    a3->setText(i18n("New line"));
-    a3->setIcon(QIcon::fromTheme(QStringLiteral("debug-run")));
-    KActionCollection::setDefaultShortcut(a2, QKeySequence((Qt::SHIFT | Qt::Key_Enter)));
-
     connect(newTabBtn_, &QAbstractButton::clicked, parent, &OllamaToolWidget::newTab);
-
-    connect(a, &QAction::triggered, this, &MainTab::handle_signalOnSinglePrompt);
-
-    connect(a2, &QAction::triggered, this, &MainTab::handle_signalOnFullPrompt);
-
-    connect(a3, &QAction::triggered, this, &MainTab::handle_signalOnFullPrompt);
 
     connect(ollamaSystem_, &OllamaSystem::signal_modelsListLoaded, this, &MainTab::handle_signalModelsListLoaded);
 
@@ -123,10 +100,7 @@ MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, 
 
     connect(ollamaSystem_, &OllamaSystem::signal_ollamaRequestFinished, this, &MainTab::handle_signalOllamaRequestFinished);
 
-    connect(textAreaInput_,
-            &QOllamaPlainTextEdit::signal_enterKeyWasPressed,
-            this,
-            &MainTab::handle_signal_textAreaInputEnterKeyWasPressed); // Also need to capture control enter for the full prompt.
+    connect(textAreaInput_, &QOllamaPlainTextEdit::signal_enterKeyWasPressed, this, &MainTab::handle_signal_textAreaInputEnterKeyWasPressed);
 
     connect(textAreaOutput_, &QPlainTextEdit::textChanged, textAreaOutput_, &QOllamaPlainTextEdit::onTextChanged);
 
@@ -158,28 +132,6 @@ void MainTab::handle_signalModelsListLoaded(const QList<QJsonValue> &modelsList)
     }
 }
 
-void MainTab::handle_signalOnSinglePrompt()
-{
-    KTextEditor::View *view = mainWindow_->activeView();
-    if (view) {
-        QString prompt = getPrompt();
-        if (!prompt.isEmpty()) {
-            Messages::showStatusMessage(QStringLiteral("Info: Single prompt.."), KTextEditor::Message::Information, mainWindow_);
-            ollamaRequest(prompt);
-        } else {
-            Messages::showStatusMessage(QStringLiteral("Info: No single prompt..."), KTextEditor::Message::Information, mainWindow_);
-        }
-    } else {
-        Messages::showStatusMessage(QStringLiteral("Info: Single prompt, no view..."), KTextEditor::Message::Information, mainWindow_);
-    }
-}
-
-void MainTab::handle_signalOnFullPrompt()
-{
-    QString prompt = textAreaInput_->document()->toPlainText();
-    ollamaRequest(prompt);
-}
-
 void MainTab::handle_signalOllamaRequestMetaDataChanged(OllamaResponse ollamaResponse)
 {
     if (ollamaResponse.getReceiver() == "widget" || ollamaResponse.getReceiver() == "" || outputInEditor_) {
@@ -197,7 +149,6 @@ void MainTab::handle_signalOllamaRequestGotResponse(OllamaResponse ollamaRespons
 
     QTextCursor cursor = textAreaOutput_->textCursor();
     cursor.insertText(ollamaResponse.getResponseText());
-    cursor.insertText("\n\n");
 
     Messages::showStatusMessage(QStringLiteral("Info: Reply received..."), KTextEditor::Message::Information, mainWindow_);
 }
@@ -224,8 +175,15 @@ void MainTab::handle_signal_textAreaInputEnterKeyWasPressed(QKeyEvent *event)
     if (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return) {
         qDebug() << "Enter/Return key pressed in CustomWidget";
 
-        QString prompt = textAreaInput_->toPlainText();
-        ollamaRequest(prompt);
+        if (!event->modifiers()) {
+            QString prompt = textAreaInput_->toPlainText();
+            ollamaRequest(prompt);
+        } else {
+            QTextCursor cursor = textAreaInput_->textCursor();
+            cursor.insertText("\n");
+
+            textAreaInput_->verticalScrollBar()->maximum();
+        }
     }
 }
 

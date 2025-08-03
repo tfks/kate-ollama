@@ -28,7 +28,7 @@
 
 KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *plugin)
     : KTextEditor::ConfigPage(parent)
-    , m_plugin(plugin)
+    , plugin_(plugin)
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
 
@@ -39,8 +39,8 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
         auto label = new QLabel(i18n("Ollama URL"));
         hl->addWidget(label);
 
-        m_ollamaURLText = new QLineEdit(this);
-        hl->addWidget(m_ollamaURLText);
+        ollamaURLText_ = new QLineEdit(this);
+        hl->addWidget(ollamaURLText_);
 
         layout->addLayout(hl);
     }
@@ -52,8 +52,8 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
         auto label = new QLabel(i18n("Available Models"));
         hl->addWidget(label);
 
-        m_modelsComboBox = new QComboBox(this);
-        hl->addWidget(m_modelsComboBox);
+        modelsComboBox_ = new QComboBox(this);
+        hl->addWidget(modelsComboBox_);
 
         layout->addLayout(hl);
     }
@@ -65,9 +65,9 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
         auto label = new QLabel(i18n("System Prompt"));
         hl->addWidget(label);
 
-        m_systemPromptEdit = new QTextEdit(this);
-        m_systemPromptEdit->setGeometry(100, 100, 300, 200);
-        hl->addWidget(m_systemPromptEdit);
+        systemPromptEdit_ = new QTextEdit(this);
+        systemPromptEdit_->setGeometry(100, 100, 300, 200);
+        hl->addWidget(systemPromptEdit_);
 
         layout->addLayout(hl);
     }
@@ -76,18 +76,18 @@ KateOllamaConfigPage::KateOllamaConfigPage(QWidget *parent, KateOllamaPlugin *pl
 
     // Error/Info label
     {
-        m_infoLabel = new QLabel(this);
-        m_infoLabel->setVisible(false); // its hidden initially
-        m_infoLabel->setWordWrap(true);
-        layout->addWidget(m_infoLabel);
+        infoLabel_ = new QLabel(this);
+        infoLabel_->setVisible(false); // its hidden initially
+        infoLabel_->setWordWrap(true);
+        layout->addWidget(infoLabel_);
     }
 
     setLayout(layout);
 
     loadSettings();
-    QObject::connect(m_modelsComboBox, &QComboBox::currentIndexChanged, this, &KateOllamaConfigPage::changed);
-    QObject::connect(m_systemPromptEdit, &QTextEdit::textChanged, this, &KateOllamaConfigPage::changed);
-    QObject::connect(m_ollamaURLText, &QLineEdit::textEdited, this, &KateOllamaConfigPage::changed);
+    QObject::connect(modelsComboBox_, &QComboBox::currentIndexChanged, this, &KateOllamaConfigPage::changed);
+    QObject::connect(systemPromptEdit_, &QTextEdit::textChanged, this, &KateOllamaConfigPage::changed);
+    QObject::connect(ollamaURLText_, &QLineEdit::textEdited, this, &KateOllamaConfigPage::changed);
 }
 
 void KateOllamaConfigPage::fetchModelList()
@@ -95,7 +95,7 @@ void KateOllamaConfigPage::fetchModelList()
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     connect(manager, &QNetworkAccessManager::finished, this, [this](QNetworkReply *reply) {
         if (reply->error() == QNetworkReply::NoError) {
-            m_infoLabel->setVisible(false); // Hide the label on success
+            infoLabel_->setVisible(false); // Hide the label on success
 
             QByteArray responseData = reply->readAll();
             QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
@@ -116,33 +116,33 @@ void KateOllamaConfigPage::fetchModelList()
                     for (const QJsonValue &modelValue : modelsList) {
                         QJsonObject modelObj = modelValue.toObject();
                         if (modelObj.contains("name")) {
-                            m_modelsComboBox->addItem(modelObj["name"].toString());
+                            modelsComboBox_->addItem(modelObj["name"].toString());
                         }
 
-                        if (modelObj["name"].toString() == m_plugin->getModel()) {
-                            modelSelected = m_modelsComboBox->count();
+                        if (modelObj["name"].toString() == plugin_->getModel()) {
+                            modelSelected = modelsComboBox_->count();
                         }
                     }
 
                     if (modelSelected != -1) {
-                        m_modelsComboBox->setCurrentIndex(modelSelected - 1);
+                        modelsComboBox_->setCurrentIndex(modelSelected - 1);
                     }
                 }
             }
         } else {
             qWarning() << "Error fetching model list:" << reply->errorString();
             // Show error in UI
-            m_infoLabel->setText(i18n("Error fetching model list: %1", reply->errorString()));
+            infoLabel_->setText(i18n("Error fetching model list: %1", reply->errorString()));
         }
         reply->deleteLater();
     });
 
-    QUrl url(m_ollamaURLText->text() + "/api/tags");
+    QUrl url(ollamaURLText_->text() + "/api/tags");
     QNetworkRequest request(url);
     manager->get(request);
 
-    m_infoLabel->setText(i18n("Loading model list..."));
-    m_infoLabel->setVisible(true);
+    infoLabel_->setText(i18n("Loading model list..."));
+    infoLabel_->setVisible(true);
 }
 
 QString KateOllamaConfigPage::name() const
@@ -164,30 +164,30 @@ void KateOllamaConfigPage::apply()
 {
     // Save settings to disk
     KConfigGroup group(KSharedConfig::openConfig(), "KateOllama");
-    group.writeEntry("Model", m_modelsComboBox->currentText());
-    group.writeEntry("URL", m_ollamaURLText->text());
-    group.writeEntry("SystemPrompt", m_systemPromptEdit->toPlainText());
+    group.writeEntry("Model", modelsComboBox_->currentText());
+    group.writeEntry("URL", ollamaURLText_->text());
+    group.writeEntry("SystemPrompt", systemPromptEdit_->toPlainText());
     group.sync();
 
     // Update the cached variables in Plugin
-    m_plugin->setModel(m_modelsComboBox->currentText());
-    m_plugin->setModel(m_systemPromptEdit->toPlainText());
-    m_plugin->setOllamaUrl(m_ollamaURLText->text());
+    plugin_->setModel(modelsComboBox_->currentText());
+    plugin_->setModel(systemPromptEdit_->toPlainText());
+    plugin_->setOllamaUrl(ollamaURLText_->text());
 }
 
 void KateOllamaConfigPage::defaults()
 {
-    m_ollamaURLText->setText("http://localhost:11434");
-    m_systemPromptEdit->setPlainText(
+    ollamaURLText_->setText("http://localhost:11434");
+    systemPromptEdit_->setPlainText(
         "You are a smart coder assistant, code comments are in the prompt language. You don't explain, you add only code comments.");
 }
 
 void KateOllamaConfigPage::reset()
 {
     // Reset the UI values to last known settings
-    m_modelsComboBox->setCurrentText(m_plugin->getModel());
-    m_systemPromptEdit->setPlainText(m_plugin->getSystemPrompt());
-    m_ollamaURLText->setText(m_plugin->getOllamaUrl());
+    modelsComboBox_->setCurrentText(plugin_->getModel());
+    systemPromptEdit_->setPlainText(plugin_->getSystemPrompt());
+    ollamaURLText_->setText(plugin_->getOllamaUrl());
 }
 
 void KateOllamaConfigPage::loadSettings()
@@ -202,12 +202,12 @@ void KateOllamaConfigPage::loadSettings()
         defaults();
     }
 
-    m_ollamaURLText->setText(url);
-    m_systemPromptEdit->setPlainText(systemPrompt);
+    ollamaURLText_->setText(url);
+    systemPromptEdit_->setPlainText(systemPrompt);
 
-    m_plugin->setSystemPrompt(m_systemPromptEdit->toPlainText());
-    m_plugin->setOllamaUrl(m_ollamaURLText->text());
-    m_plugin->setModel(model);
+    plugin_->setSystemPrompt(systemPromptEdit_->toPlainText());
+    plugin_->setOllamaUrl(ollamaURLText_->text());
+    plugin_->setModel(model);
 
     fetchModelList();
 }
