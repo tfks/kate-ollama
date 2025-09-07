@@ -25,6 +25,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 #include <qnamespace.h>
+#include <qrawfont.h>
+#include <qwidget.h>
 
 #include "src/ollama/ollamadata.h"
 #include "src/ollama/ollamaglobals.h"
@@ -41,6 +43,10 @@ MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, 
     , plugin_(plugin)
     , ollamaSystem_(ollamaSystem)
 {
+    leftWidget_ = new QWidget(this);
+
+    rightWidget_ = new QWidget(this);
+
     topWidget_ = new QWidget(this);
     topWidget_->setFixedHeight(35);
     topWidget_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -91,19 +97,12 @@ MainTab::MainTab(KateOllamaPlugin *plugin, KTextEditor::MainWindow *mainWindow, 
     setLayout(mainLayout_);
 
     connect(newTabBtn_, &QAbstractButton::clicked, parent, &OllamaToolWidget::newTab);
-
     connect(ollamaSystem_, &OllamaSystem::signal_modelsListLoaded, this, &MainTab::handle_signalModelsListLoaded);
-
     connect(ollamaSystem_, &OllamaSystem::signal_ollamaRequestMetaDataChanged, this, &MainTab::handle_signalOllamaRequestMetaDataChanged);
-
     connect(ollamaSystem_, &OllamaSystem::signal_ollamaRequestGotResponse, this, &MainTab::handle_signalOllamaRequestGotResponse);
-
     connect(ollamaSystem_, &OllamaSystem::signal_ollamaRequestFinished, this, &MainTab::handle_signalOllamaRequestFinished);
-
     connect(textAreaInput_, &QOllamaPlainTextEdit::signal_enterKeyWasPressed, this, &MainTab::handle_signal_textAreaInputEnterKeyWasPressed);
-
     connect(textAreaOutput_, &QPlainTextEdit::textChanged, textAreaOutput_, &QOllamaPlainTextEdit::onTextChanged);
-
     connect(outputInEditorPushButton_, &QPushButton::clicked, this, &MainTab::handle_signalOutputInEditorClicked);
 
     loadModels();
@@ -177,6 +176,13 @@ void MainTab::handle_signal_textAreaInputEnterKeyWasPressed(QKeyEvent *event)
 
         if (!event->modifiers()) {
             QString prompt = textAreaInput_->toPlainText();
+            // I need the output text area to always have output.
+            // reason is that I can always access it.
+            // It is difficult to know what editor the ouput was written in.
+            // I could also keep history in a session.
+            // Yes, that's the way to go.
+            // QString history = QString("");
+
             ollamaRequest(prompt);
         } else {
             QTextCursor cursor = textAreaInput_->textCursor();

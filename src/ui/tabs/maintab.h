@@ -24,6 +24,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 #include <qevent.h>
+#include <qlist.h>
 
 #include "src/ollama/ollamaresponse.h"
 #include "src/ollama/ollamasystem.h"
@@ -61,6 +62,17 @@ private:
     KTextEditor::MainWindow *mainWindow_ = nullptr;
 
     QVBoxLayout *mainLayout_;
+
+    QWidget *leftWidget_;
+    QVBoxLayout *leftLayout_;
+
+    QList<QPushButton> *sessionButtons_; // These buttons need to be added based on the saved sessions.
+    // Need a custom control with a label and a button for deletion.
+
+    QWidget *rightWidget_;
+    QVBoxLayout *rightLayout_; // this houses the main interface. We need to add the top, middle, bottom widget to it.
+
+    QSplitter *leftRightSplitter_; // the left and right widget need to be added here.
 
     QWidget *topWidget_;
     QHBoxLayout *topLayout_;
