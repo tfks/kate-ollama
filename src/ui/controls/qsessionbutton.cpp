@@ -13,7 +13,7 @@ QSessionButton::QSessionButton(QWidget *parent, QString title)
     layout_->addWidget(label_);
     layout_->addWidget(button_);
 
-    this.setLayout(layout_);
+    this->setLayout(layout_);
 }
 
 void QSessionButton::handleButtonClicked()
